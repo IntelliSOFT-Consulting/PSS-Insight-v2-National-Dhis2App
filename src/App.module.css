@@ -1,0 +1,214 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.p4 {
+  padding: 1rem;
+}
+
+.p2 {
+  padding: 0.5rem;
+}
+
+.m4 {
+  margin: 1rem;
+}
+
+.m2 {
+  margin: 0.5rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.px2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.py4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.py2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.bold {
+  font-weight: bold !important;
+}
+
+.danger {
+  color: #fd0b0b;
+}
+
+.primary {
+  color: #0099cc;
+}
+
+.buttonLink {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-style: italic;
+  padding: 0;
+  padding: 3px 5px;
+}
+
+.sidebar {
+  flex-grow: 0;
+  width: 366;
+  height: '100%';
+}
+
+.sidebar a {
+  text-decoration: none;
+}
+
+.card {
+  height: fit-content !important;
+  width: 100%;
+  display: flex;
+}
+
+.cardTitle {
+  background-color: #0067b9;
+  color: white;
+  margin: 0;
+  padding: 10px 1.5rem;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.w50 {
+  width: 50%;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  margin-top: 1rem;
+}
+
+.inputDescription {
+  color: #005a8e;
+  font-size: 12px;
+}
+
+.formGrid > div {
+  margin-bottom: 1rem;
+}
+
+.cardFooter {
+  background-color: #005a8e0f;
+  margin: 0;
+  padding: 5px 1.5rem;
+  margin-top: 20px;
+  font-size: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cardFooter > button {
+  margin-left: 10px;
+}
+
+.btnSuccess {
+  background-color: #218838 !important;
+  color: white !important;
+  border-color: #218838 !important;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+  background-color: #EFF5F9;
+  padding: 10px;
+}
+
+.alert {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.accordion {
+  width: 100%;
+  margin: 2rem auto;
+}
+
+.accordionTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  cursor: pointer;
+  background-color: #F6F6F6;
+  font-size: 14px;
+  font-weight: 400;
+  border-radius: 2px;
+}
+
+.accordionIcon {
+  width: 1rem;
+}
+
+.accordionTitle:hover {
+  background-color: #efefef;
+}
+
+.accordionTitle,
+.accordionContent {
+  padding: 10px 1rem;
+}
+
+.accordionContent {
+  padding: 0 1rem 1rem 1rem;
+}
+
+.btnPublish {
+  background-color: #0067b9 !important;
+  color: white !important;
+  border-color: #0067b9 !important;
+}
+
+.btnCancel {
+  background-color: #aaaaaa !important;
+  color: white !important;
+  border-color: #aaaaaa !important;
+}
+
+/* span with data-test attribute of dhis2-uicore-field-label-required */
+span[data-test='dhis2-uicore-field-label-required'] {
+  color: #fd0b0b;
+}
+
+@media screen and (max-width: 700px) {
+  .accordion {
+    width: 90%;
+  }
+}
