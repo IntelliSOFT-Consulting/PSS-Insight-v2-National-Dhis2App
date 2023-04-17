@@ -54,7 +54,9 @@ export const updateVersion = async (id, version) => {
 };
 
 export const deleteVersion = async versionId => {
-  const { data } = await api.delete(`/national-template/version/${versionId}`);
+  const { data } = await api.delete(
+    `/national-template/version-details/${versionId}`
+  );
   return data;
 };
 
@@ -65,3 +67,5 @@ export const updateIndicator = async datas => {
   );
   return data;
 };
+
+

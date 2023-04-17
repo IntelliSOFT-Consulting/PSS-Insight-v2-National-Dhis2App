@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DataQuery } from '@dhis2/app-runtime';
-import { Menu, MenuItem } from '@dhis2/ui';
 import Main from '../components/Main';
-import { getOrganizationUnit } from '../api/api';
 import Loader from '../components/Loader';
 import templateRoutes from '../routes/templateRoutes';
 import surveyRoutes from '../routes/surveyRoutes';
 
 export default function Layout({ layout, user }) {
-  const [organizations, setOrganizations] = useState([]);
-
-  useEffect(() => {
-    getOrganizationUnit().then(organization => {
-      setOrganizations(organization?.details);
-    });
-  }, []);
-
   const query = {
     me: {
       resource: 'me',
@@ -43,6 +33,19 @@ export default function Layout({ layout, user }) {
       label: 'Surveys',
       path: '/surveys/menu',
     },
+    {
+      label: 'Notification Templates',
+      path: '/surveys/notification-templates',
+      isTitle: true,
+    },
+    {
+      label: 'Notifications',
+      path: '/surveys/notifications/list',
+    },
+    {
+      label: 'Notoification Settings',
+      path: '/surveys/notifications/settings',
+    },
   ];
 
   return (
@@ -52,13 +55,13 @@ export default function Layout({ layout, user }) {
         if (loading) return <Loader />;
         return (
           <Main
-            organizations={organizations}
             sideLinks={layout === 'Templates' ? templateLinks : surveyLinks}
             title={
               layout === 'Templates'
                 ? 'Local Master Indicator Template'
                 : 'Survey Menu'
             }
+            showDashboard={true}
           >
             <Routes>
               {layout === 'Templates'

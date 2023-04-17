@@ -59,6 +59,11 @@ export const getSurvey = async id => {
   return data;
 };
 
+export const updateSurvey = async (id, survey) => {
+  const { data } = await api.put(`/survey/survey-details/${id}`, survey);
+  return data;
+};
+
 export const getDataEntryDetails = async (surveyId, respondentId) => {
   const { data } = await api.get(
     `/survey/data-entry-details/${surveyId}/${respondentId}`

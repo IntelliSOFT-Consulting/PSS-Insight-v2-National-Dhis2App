@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import Table from './Table';
+import { Checkbox } from '@dhis2/ui';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import InfoModal from './InfoModal';
 import FormInput from './FormDef';
@@ -106,6 +107,21 @@ export default function ResponseGrid({
 
   return (
     <div className={classes.indicatorStack}>
+      <div className={classes.indicatorCheckbox}>
+        <Checkbox
+          // disabled={
+          //   disabled || checkDisable(indicator.categoryId, formik.values)
+          // }
+          // checked={Object.values(formik.values)?.includes(indicator.categoryId)}
+          // onChange={({ checked }) => {
+          //   if (checked) {
+          //     formik.setFieldValue(indicator.categoryId, indicator.categoryId);
+          //   } else {
+          //     formik.setFieldValue(indicator.categoryId, '');
+          //   }
+          // }}
+        />
+      </div>
       <div className={classes.indicatorTable}>
         {
           <Table

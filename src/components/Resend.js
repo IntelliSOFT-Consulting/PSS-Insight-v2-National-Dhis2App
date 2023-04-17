@@ -47,8 +47,9 @@ export default function Resend({ Form, form, ...props }) {
             size='large'
             className={classes.input}
             placeholder='Select expiry date'
-            disabledDate={(current) => current && current < 
-              moment().subtract(1, 'days')}
+            disabledDate={current =>
+              current && current < moment().subtract(1, 'days')
+            }
           />
         </Form.Item>
       </Form>

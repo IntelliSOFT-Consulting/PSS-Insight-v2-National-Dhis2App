@@ -69,13 +69,13 @@ export default function NewVersion({ user }) {
           .filter(item => values[item])
           .map(indicator => ({
             id: indicator?.split('-')[0],
-            latest: indicator?.split('-')[1] ? true : false,
+            isLatest: indicator?.split('-')[1] ? true : false,
           }));
         let response;
         if (id) {
           const data = {
             versionDescription: values.versionDescription,
-            isPublished: details?.status !== 'DRAFT',
+            isPublished: values.isPublished,
             publishedBy: values.isPublished ? user?.me?.username : null,
             indicators: getSelectedIndicators,
             createdBy: details?.createdBy,
@@ -158,6 +158,39 @@ export default function NewVersion({ user }) {
       return () => clearTimeout(successTimeout);
     }
   }, [success]);
+
+  const updateIndicators = (id, description) => {
+    const updatedIndicators = indicators.map(category => {
+      const updatedCategory = { ...category };
+
+      if (category.indicators) {
+        updatedCategory.indicators = category.indicators.map(indicator => {
+          const updatedIndicator = { ...indicator };
+
+          if (indicator.categoryId === id) {
+            updatedIndicator.indicatorName = description;
+          } else if (indicator.indicatorDataValue) {
+            updatedIndicator.indicatorDataValue =
+              indicator.indicatorDataValue.map(data => {
+                const updatedData = { ...data };
+
+                if (data.id === id) {
+                  updatedData.name = description;
+                }
+
+                return updatedData;
+              });
+          }
+
+          return updatedIndicator;
+        });
+      }
+
+      return updatedCategory;
+    });
+
+    setIndicators(updatedIndicators);
+  };
 
   const footer = (
     <div className={classes.cardFooter}>
@@ -282,16 +315,16 @@ export default function NewVersion({ user }) {
                 key={indicator.categoryName}
                 title={indicator.categoryName}
               >
-                {/* sort with indicator.indicators?.indicators[0].code */}
                 {indicator?.indicators?.map(indicator => (
                   <IndicatorStack
                     disabled={isView}
                     key={indicator.categoryId}
+                    updateIndicators={updateIndicators}
                     indicator={indicator}
                     onChange={() => {}}
                     formik={formik}
                     isView={isView}
-                    userId={user?.me?.id}
+                    userId={user?.me?.username}
                   />
                 ))}
               </Accordion>

@@ -178,12 +178,16 @@ export default function Surveys({ user }) {
         {loading && <Loader />}
         {surveys?.length === 0 && <Empty message='No surveys' />}
         {selected === 'Draft' ? (
-          <Table
-            columns={draftColumns}
-            tableData={surveys}
-            loading={loading}
-            bordered
-          />
+          <>
+            {surveys?.length > 0 && (
+              <Table
+                columns={draftColumns}
+                tableData={surveys}
+                loading={loading}
+                bordered
+              />
+            )}
+          </>
         ) : (
           sortSurveys(surveys)?.map(survey => (
             <MiniCard title={survey.surveyName} key={survey.surveyId}>

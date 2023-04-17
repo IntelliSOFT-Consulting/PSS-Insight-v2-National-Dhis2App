@@ -3,13 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, MenuItem } from '@dhis2/ui';
 import classes from '../App.module.css';
 
-export default function Main({
-  organizations = [],
-  title,
-  me,
-  sideLinks,
-  children,
-}) {
+export default function Main({ title, sideLinks, showDashboard, children }) {
   const location = useLocation();
 
   const activePath = location.pathname;
@@ -27,9 +21,11 @@ export default function Main({
     >
       <aside className={classes.sidebar}>
         <Menu>
-          <Link to='/'>
-            <MenuItem label='Dashboard' />
-          </Link>
+          {showDashboard && (
+            <Link to='/'>
+              <MenuItem label='Dashboard' />
+            </Link>
+          )}
 
           <p
             style={{
@@ -43,14 +39,31 @@ export default function Main({
           >
             {title}
           </p>
-          {sideLinks?.map(item => (
-            <Link to={item.path} key={item.path}>
-              <MenuItem
-                label={item.label}
-                active={matchPaths(item.path, activePath)}
-              />
-            </Link>
-          ))}
+          {sideLinks?.map(item =>
+            item?.isTitle ? (
+              <p
+                key={item.label}
+                style={{
+                  background: '#005A8E46',
+                  margin: 0,
+                  padding: 16,
+                  marginBottom: 0,
+                  marginTop: 16,
+                  fontSize: 14,
+                  width: 270,
+                }}
+              >
+                {item.label}
+              </p>
+            ) : (
+              <Link to={item.path} key={item.path}>
+                <MenuItem
+                  label={item.label}
+                  active={matchPaths(item.path, activePath)}
+                />
+              </Link>
+            )
+          )}
         </Menu>
       </aside>
       <section

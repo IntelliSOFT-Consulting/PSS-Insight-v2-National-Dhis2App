@@ -14,6 +14,7 @@ import Notification from '../components/Notification';
 import { Button, DatePicker, Form } from 'antd';
 import Resend from '../components/Resend';
 import moment from 'moment';
+import { format } from 'date-fns';
 import Title from '../components/Title';
 
 const useStyles = createUseStyles({
@@ -114,11 +115,14 @@ export default function Response() {
     const expiry = new Date(date);
     const hasResponded =
       surveySubmission?.responses?.filter(item => item.response).length > 0;
-    return now > expiry ;
+    return now > expiry && !hasResponded;
   };
 
   const resendSurvey = async (values = {}) => {
     try {
+      console.log(
+        format(new Date(values.expiryDateTime), 'yyyy-MM-dd HH:mm:ss')
+      );
       const ids = surveySubmission.questions
         .map(category => {
           return category.indicators.map(indicator => indicator.categoryId);
@@ -127,13 +131,15 @@ export default function Response() {
       const payload = isExpired(surveySubmission?.respondentDetails?.expiresAt)
         ? {
             indicators: ids,
-            expirydateTime: moment(newExpiry).format('YYYY-MM-DD HH:mm:ss'),
+            expiryDateTime: moment(newExpiry).format('YYYY-MM-DD HH:mm:ss'),
           }
         : {
             indicators: ids,
             comments: values.comments,
-            expirydateTime: moment(values.expirydate).format(
-              'YYYY-MM-DD HH:mm:ss'
+            // 'YYYY-MM-DD HH:mm:ss'
+            expiryDateTime: format(
+              new Date(values.expiryDateTime),
+              'yyyy-MM-dd HH:mm:ss'
             ),
           };
       const data = await resendSurveySubmission(

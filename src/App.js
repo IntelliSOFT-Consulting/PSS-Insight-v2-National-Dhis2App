@@ -13,7 +13,7 @@ const query = {
   me: {
     resource: 'me',
     params: {
-      fields: ['id', 'name', 'displayName','username', 'userCredentials[username]','organisationUnits[id,name]'],
+      fields: 'id,displayName,organisationUnits[id,name]',
     }
   },
 };

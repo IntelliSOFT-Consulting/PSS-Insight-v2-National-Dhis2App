@@ -10,6 +10,8 @@ import EditModal from './EditModal';
 import InfoModal from './InfoModal';
 import { updateIndicator } from '../api/api';
 import { formatLatestId, checkDisable } from '../utils/helpers';
+import ModalItem from './Modal';
+import { Input } from 'antd';
 
 const useStyles = createUseStyles({
   indicatorStack: {
@@ -65,37 +67,46 @@ export default function IndicatorStack({
   formik,
   isView,
   userId,
+  updateIndicators,
 }) {
   const classes = useStyles();
-  const [editModal, setEditModal] = useState(null);
   const [infoModal, setInfoModal] = useState(null);
-  const [editIndicator, setEditIndicator] = useState(null);
+  const [editedDescription, setEditedDescription] = useState('');
+  const [error, setError] = useState(null);
 
-  const onIndicatorChange = ({ value }) => {
-    setEditIndicator({ ...editModal, value });
+  const [editingKey, setEditingKey] = useState('');
+
+  const editRow = record => {
+    setEditingKey(record.categoryId || record.id);
+    setEditedDescription(record.indicatorName || record.name);
   };
 
-  const saveIndicator = async () => {
-    if (editIndicator) {
-      const { value } = editIndicator;
-      const { data } = await updateIndicator({
-        editValue: value,
+  const saveRow = async key => {
+    try {
+      const payload = {
+        editValue: editedDescription,
         creatorId: userId,
-        indicatorId: formatLatestId(editIndicator.indicatorId)?.id,
-        categoryId: formatLatestId(editIndicator.categoryId)?.id,
-      });
-      if (data) {
-        const { indicatorDataValue } = indicator;
-        const index = indicatorDataValue.findIndex(
-          item => item.id === editIndicator.id
-        );
-        if (index !== -1) {
-          indicatorDataValue[index].name = value;
-        }
-        setEditIndicator(null);
-        setEditModal(null);
+      };
+      if (indicator.categoryId === key) {
+        const id = formatLatestId(key)?.id;
+        payload.indicatorId = id;
+        payload.categoryId = id;
+      } else {
+        payload.indicatorId = formatLatestId(key)?.id;
+        payload.categoryId = formatLatestId(indicator.categoryId)?.id;
       }
+      const data = await updateIndicator(payload);
+      if (data) {
+        await updateIndicators(key, editedDescription);
+        setEditingKey('');
+      }
+    } catch (e) {
+      setError('Error updating indicator');
     }
+  };
+
+  const cancelRow = () => {
+    setEditingKey('');
   };
 
   const columns = [
@@ -120,13 +131,12 @@ export default function IndicatorStack({
           {!isView && (
             <PencilSquareIcon
               className={classes.edit}
-              onClick={() => {
-                setEditModal({
-                  ...indicator,
-                  categoryId: indicator.categoryId,
-                  indicatorId: indicator.categoryId,
-                });
-              }}
+              onClick={() =>
+                editRow({
+                  categoryId: indicator?.categoryId,
+                  indicatorName: indicator?.indicatorName,
+                })
+              }
             />
           )}
           <ExclamationCircleIcon
@@ -142,19 +152,27 @@ export default function IndicatorStack({
           {!isView && (
             <PencilSquareIcon
               className={classes.edit}
-              onClick={() =>
-                setEditModal({
-                  ...row,
-                  categoryId: indicator.categoryId,
-                  indicatorId: row.id,
-                })
-              }
+              onClick={() => editRow(row)}
             />
           )}
         </div>
       ),
     },
   ];
+
+  const handleDescriptionChange = e => {
+    setEditedDescription(e.target.value);
+  };
+
+  const handleModalOk = () => {
+    saveRow(editingKey);
+    setEditedDescription('');
+  };
+
+  const handleModalCancel = () => {
+    cancelRow();
+    setEditedDescription('');
+  };
 
   return (
     <div className={classes.indicatorStack}>
@@ -183,18 +201,20 @@ export default function IndicatorStack({
           />
         }
       </div>
-      <EditModal
-        key={editModal?.categoryId || editModal?.id}
+      <ModalItem
         title='EDIT INSTANCE'
-        onCancel={() => setEditModal(null)}
-        onOk={saveIndicator}
-        onChange={onIndicatorChange}
-        open={editModal}
-        value={
-          editIndicator?.value || editModal?.indicatorName || editModal?.name
-        }
+        open={!!editingKey}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
         type='info'
-      />
+      >
+        <Input.TextArea
+          value={editedDescription}
+          onChange={handleDescriptionChange}
+          placeholder='Description'
+          rows={4}
+        />
+      </ModalItem>
       <InfoModal
         key={infoModal?.categoryId}
         title={`${infoModal?.code || ''} DEFINITION`}

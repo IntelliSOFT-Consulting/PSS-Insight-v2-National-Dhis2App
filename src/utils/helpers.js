@@ -109,9 +109,9 @@ export const groupIndicatorsByVersion = indicators => {
 
 export const formatLatestId = (id = '') => {
   if (id.endsWith('-latest')) {
-    return { id: id.slice(0, -7), latest: true };
+    return { id: id.split('-')[0], lisLatest: true };
   }
-  return { id: id.split('-')[0], latest: false };
+  return { id: id.split('-')[0], isLatest: false };
 };
 
 export const formatVersionDetails = (versionDetails = {}) => {

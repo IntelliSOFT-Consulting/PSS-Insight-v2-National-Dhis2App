@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import { Field, TextArea, AlertBar } from '@dhis2/ui';
 import { Button, Form, Input, Select, DatePicker } from 'antd';
-import { addRespondents, addSurvey, getSurvey } from '../api/surveySubmissions';
+import {
+  addRespondents,
+  addSurvey,
+  getSurvey,
+  updateSurvey,
+} from '../api/surveySubmissions';
 import { getNationalIndicators } from '../api/api';
 import classes from '../App.module.css';
 import { useFormik } from 'formik';
@@ -12,15 +17,11 @@ import SurveyIndicatorStack from '../components/SurveyIndicatorStack';
 import Accordion from '../components/Accordion';
 import Loading from '../components/Loader';
 import { createUseStyles } from 'react-jss';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { format } from 'date-fns';
 import moment from 'moment';
-import {
-  formatSurveyDetails,
-  groupIndicatorsByVersion,
-  sortIndicators,
-} from '../utils/helpers';
+import { formatSurveyDetails, sortIndicators } from '../utils/helpers';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -63,8 +64,10 @@ export default function NewSurvey({ user }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [surveyDetails, setSurveyDetails] = useState({});
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const isView = window.location.href.includes('view');
 
@@ -79,16 +82,21 @@ export default function NewSurvey({ user }) {
     validationSchema,
     onSubmit: async values => {
       try {
-        const indicatorValues = Object.keys(values).filter(
-          value =>
-            value &&
-            value !== 'surveyName' &&
-            value !== 'surveyDescription' &&
-            value !== 'status' &&
-            value !== 'expiryDateTime' &&
-            value !== 'email' &&
-            value !== 'surveyLandingPage'
-        );
+        if (id) {
+          values = { ...surveyDetails, ...values };
+        }
+        const indicatorValues = Object.keys(values)
+          .filter(
+            value =>
+              value &&
+              value !== 'surveyName' &&
+              value !== 'surveyDescription' &&
+              value !== 'status' &&
+              value !== 'expiryDateTime' &&
+              value !== 'email' &&
+              value !== 'surveyLandingPage'
+          )
+          .filter(item => values[item]);
 
         const data = {
           creatorId: user?.me?.id,
@@ -99,7 +107,9 @@ export default function NewSurvey({ user }) {
           indicators: indicatorValues,
         };
 
-        const response = await addSurvey(data);
+        const response = id
+          ? await updateSurvey(id, data)
+          : await addSurvey(data);
         if (response) {
           if (values.status === 'PUBLISHED') {
             setSending(true);
@@ -117,6 +127,9 @@ export default function NewSurvey({ user }) {
           setShowModal(false);
           setSuccess(response);
           setError(false);
+          setTimeout(() => {
+            navigate('/surveys/menu');
+          }, 1000);
         }
       } catch (error) {
         setSending(false);
@@ -142,7 +155,7 @@ export default function NewSurvey({ user }) {
     try {
       const data = await getSurvey(id);
       const formatted = formatSurveyDetails(data);
-      console.log('formatted', formatted);
+      setSurveyDetails(formatted);
       formik.setValues(formatted);
     } catch (error) {
       setError(error?.response?.data);
@@ -152,7 +165,6 @@ export default function NewSurvey({ user }) {
   useEffect(() => {
     getIndicators();
     if (id) loadSurvey();
-    console.log('id', id);
   }, [id]);
 
   useEffect(() => {

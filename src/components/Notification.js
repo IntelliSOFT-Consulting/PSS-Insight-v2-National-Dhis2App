@@ -36,9 +36,6 @@ export default function Notification({ status, message, onClose, key }) {
       closable={status === 'error'}
       onCancel={onClose}
       key={key}
-      maskStyle={{
-        backgroundColor: status === 'success' ? '#112128' : 'rgba(0,0,0,.5)',
-      }}
     >
       <div className={classes.modal}>
         {status === 'error' ? (

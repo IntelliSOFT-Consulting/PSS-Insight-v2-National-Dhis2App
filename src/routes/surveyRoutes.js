@@ -1,6 +1,7 @@
 import NewSurvey from '../Pages/NewSurvey';
 import Surveys from '../Pages/Surveys';
 import Response from '../Pages/Response';
+import Notifications from '../Pages/Notifications';
 
 const routes = [
   {
@@ -18,6 +19,10 @@ const routes = [
   {
     path: '/response/:id',
     element: Response,
+  },
+  {
+    path: '/notifications/list',
+    element: Notifications,
   },
 ];
 
