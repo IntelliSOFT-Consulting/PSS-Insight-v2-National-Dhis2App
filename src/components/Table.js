@@ -3,7 +3,6 @@ import {
   DataTable,
   TableHead,
   DataTableRow,
-  DataTableColumnHeader,
   TableBody,
   DataTableCell,
   Pagination,
@@ -11,23 +10,7 @@ import {
   CenteredContent,
 } from '@dhis2/ui';
 import { createUseStyles } from 'react-jss';
-
-const useStyles = createUseStyles({
-  tableHeader: props => ({
-    fontWeight: 'bold !important',
-    backgroundColor: props.activeIndicator
-      ? '#D9E8F5 !important'
-      : props.isOld
-      ? '#EBEBEB !important'
-      : '',
-    '& span': {
-      width: '100%',
-    },
-  }),
-  hidden: {
-    display: 'none !important',
-  },
-});
+import TableHeader from './TableHeader';
 
 const Table = ({
   columns,
@@ -40,8 +23,6 @@ const Table = ({
 }) => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(pageSize || 15);
-
-  const classes = useStyles(props);
 
   const handleChangePage = selected => {
     setPage(selected);
@@ -133,18 +114,7 @@ const Table = ({
         <TableHead>
           <DataTableRow>
             {columns.map((column, index) => (
-              <DataTableColumnHeader
-                key={index}
-                className={`${classes.tableHeader} ${column.hidden ? classes.hidden : ''}`}
-                width={column.width || 'auto'}
-                colSpan={column.headerSpan || 'auto'}
-                hidden={!column.name}
-                style={{
-                  display: !column.name ? 'none !important' : 'table-cell',
-                }}
-              >
-                {column.name}
-              </DataTableColumnHeader>
+              <TableHeader key={index} column={column} index={index} />
             ))}
           </DataTableRow>
         </TableHead>

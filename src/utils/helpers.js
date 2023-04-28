@@ -1,3 +1,6 @@
+import { ca } from 'date-fns/locale';
+import { array } from 'yup';
+
 export const toSentenceCase = str => {
   return str
     ?.toLowerCase()
@@ -25,10 +28,12 @@ export const sortIndicators = indicators => {
 export const groupIndicatorsByVersion = indicators => {
   const versionedIndicators = indicators.reduce((acc, indicator) => {
     const { version, indicators } = indicator;
+    const referenceSheet = indicators?.referenceSheet;
     const versionedIndicators = indicators.details.map(detail => {
       const { categoryName, indicators } = detail;
       return {
         categoryName,
+        referenceSheet,
         indicators: indicators.map(indicator => ({
           ...indicator,
           version,
@@ -39,7 +44,7 @@ export const groupIndicatorsByVersion = indicators => {
   }, []);
 
   const groupedIndicators = versionedIndicators.reduce((acc, indicator) => {
-    const { categoryName, indicators } = indicator;
+    const { categoryName, indicators, referenceSheet } = indicator;
     const existingCategory = acc.find(
       category => category.categoryName === categoryName
     );
@@ -49,13 +54,13 @@ export const groupIndicatorsByVersion = indicators => {
         ...indicators,
       ];
     } else {
-      acc.push({ categoryName, indicators });
+      acc.push({ categoryName, referenceSheet, indicators });
     }
     return acc;
   }, []);
 
   const sortedGroupedIndicators = groupedIndicators.map(group => {
-    const { categoryName, indicators } = group;
+    const { categoryName, indicators, referenceSheet } = group;
     const sortedIndicators = indicators.sort((a, b) => {
       if (a.categoryName === b.categoryName) {
         return b.version - a.version;
@@ -93,6 +98,7 @@ export const groupIndicatorsByVersion = indicators => {
 
     return {
       categoryName,
+      referenceSheet,
       indicators: sortedIndicatorDataValue.map(indicator => ({
         ...indicator,
         isLatestVersion: indicator.version === sortedIndicators[0].version,
@@ -116,8 +122,12 @@ export const formatLatestId = (id = '') => {
 
 export const formatVersionDetails = (versionDetails = {}) => {
   const { indicators } = versionDetails;
-  const indicatorIds = indicators.details?.map(indicator => {
-      return indicator?.indicators.map(item => `${item.categoryId}-latest`);
+  const indicatorIds = indicators.details
+    ?.map(indicator => {
+      return indicator?.indicators.map(item => ({
+        id: item.categoryId,
+        isLatest: true,
+      }));
     })
     .flat();
   const obj = {
@@ -126,9 +136,9 @@ export const formatVersionDetails = (versionDetails = {}) => {
     status: versionDetails.status,
     createdBy: versionDetails.createdBy,
   };
-  indicatorIds.forEach(id => {
-    obj[id] = id;
-  });
+
+  obj.indicators = indicatorIds;
+
   return obj;
 };
 
@@ -137,12 +147,11 @@ const compareIds = (id1, id2) => {
   const [name2, version2] = id2.split('-');
   return name1 === name2 && version1 !== version2;
 };
-export const checkDisable = (categoryId, formikValues) => {
-  const selectedCategories = Object.values(formikValues);
-  const selectedCategory = selectedCategories.find(category =>
-    typeof category === 'string' ? compareIds(category, categoryId) : false
-  );
-  return selectedCategory ? true : false;
+export const checkDisable = (categoryId, selected) => {
+  const id = categoryId.split('-')[0];
+  const latest = categoryId.endsWith('-latest');
+  const checkSelected = selected.find(item => item.id === id);
+  return checkSelected && latest !== checkSelected?.isLatest;
 };
 
 export const displayDetails = surveyDetails => {
@@ -175,7 +184,6 @@ export const formatSurveyDetails = surveyDetails => {
     }, {});
     return { ...acc, ...newIndicators };
   }, {});
-  console.log('logged', newIndicators);
   return {
     surveyName: name,
     surveyDescription: description,
@@ -188,4 +196,6 @@ export const sortSurveys = surveys => {
   return surveys.sort((a, b) => b.surveyId - a.surveyId);
 };
 
-
+export const sortByDate = arr => {
+  return arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};

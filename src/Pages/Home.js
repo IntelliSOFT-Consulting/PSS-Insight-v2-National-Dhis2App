@@ -44,6 +44,10 @@ const routes = [
     path: '/surveys/menu',
     text: 'Surveys',
   },
+  {
+    path: '/notifications/list',
+    text: 'Notifications',
+  },
 ];
 
 export default function Home() {

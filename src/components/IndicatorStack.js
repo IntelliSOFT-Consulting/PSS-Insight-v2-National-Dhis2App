@@ -68,6 +68,9 @@ export default function IndicatorStack({
   isView,
   userId,
   updateIndicators,
+  referenceSheet,
+  selectedIndicators,
+  setSelectedIndicators,
 }) {
   const classes = useStyles();
   const [infoModal, setInfoModal] = useState(null);
@@ -179,14 +182,28 @@ export default function IndicatorStack({
       <div className={classes.indicatorCheckbox}>
         <Checkbox
           disabled={
-            disabled || checkDisable(indicator.categoryId, formik.values)
+            disabled || checkDisable(indicator.categoryId, selectedIndicators)
           }
-          checked={Object.values(formik.values)?.includes(indicator.categoryId)}
+          checked={selectedIndicators?.find(
+            ({ id, isLatest }) =>
+              id === indicator.categoryId?.split('-')[0] &&
+              isLatest === indicator.categoryId?.endsWith('-latest')
+          )}
           onChange={({ checked }) => {
             if (checked) {
-              formik.setFieldValue(indicator.categoryId, indicator.categoryId);
+              setSelectedIndicators([
+                ...selectedIndicators,
+                {
+                  id: indicator.categoryId?.split('-')[0],
+                  isLatest: indicator.categoryId?.endsWith('-latest'),
+                },
+              ]);
             } else {
-              formik.setFieldValue(indicator.categoryId, '');
+              setSelectedIndicators(
+                selectedIndicators.filter(
+                  ({ id }) => id !== indicator.categoryId?.split('-')[0]
+                )
+              );
             }
           }}
         />
@@ -222,6 +239,7 @@ export default function IndicatorStack({
         open={infoModal}
         type='info'
         footer={null}
+        referenceSheet={referenceSheet}
       />
     </div>
   );

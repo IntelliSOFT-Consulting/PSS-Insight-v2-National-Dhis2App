@@ -1,8 +1,10 @@
 import React from 'react';
 import Modal from './Modal';
 import { createUseStyles } from 'react-jss';
-import { PaperClipIcon } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import {
+  PaperClipIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/solid';
 
 const useStyles = createUseStyles({
   infoModal: {
@@ -23,6 +25,34 @@ const useStyles = createUseStyles({
       height: '1rem',
     },
   },
+  guide: {
+    marginTop: '1rem',
+    fontSize: '0.8rem',
+    backgroundColor: 'rgb(239 246 255)',
+    borderRadius: '0.375rem',
+    padding: '0.5rem',
+    '& p': {
+      color: '#3B82F6',
+      textEmphasis: 'italic !important',
+      marginTop: '0px !important',
+    },
+    '& > div': {
+      display: 'flex',
+      '& > div:first-child': {
+        flexShrink: 0,
+      },
+      '& > div:last-child': {
+        marginLeft: '0.75rem',
+        flex: '1 1 0%',
+        display: 'block !important',
+      },
+    },
+  },
+  infoIcon: {
+    width: '1.5rem',
+    height: '1.5rem',
+    color: '#3B82F6',
+  },
 });
 
 export default function InfoModal(props) {
@@ -31,10 +61,29 @@ export default function InfoModal(props) {
     <Modal {...props} type='info'>
       <div classname={classes.infoModal}>
         <div>{props.open?.indicatorName}</div>
-        <Link to='/#' className={classes.infoLink}>
+        <div class={classes.guide}>
+          <div>
+            <div>
+              <InformationCircleIcon className={classes.infoIcon} />
+            </div>
+            <div>
+              <p>
+                To find a specific indicator in the document, use the search
+                function (typically Ctrl+F or Command+F) and enter the name or
+                keyword of the indicator you're looking for.
+              </p>
+            </div>
+          </div>
+        </div>
+        <a
+          href={`http://172.104.91.99:7001/api/v1/national-template/view-file/${props.referenceSheet}`}
+          className={classes.infoLink}
+          target='_blank'
+          rel='noreferrer'
+        >
           <PaperClipIcon />
           Reference Sheet
-        </Link>
+        </a>
       </div>
     </Modal>
   );

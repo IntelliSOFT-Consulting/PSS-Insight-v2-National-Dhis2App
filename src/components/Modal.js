@@ -14,6 +14,8 @@ const useStyles = createUseStyles({
               return '#f39c12 !important';
             case 'error':
               return '#FD0C0B !important';
+            case 'success':
+              return '#218838 !important';
             default:
               return '#0067b9 !important';
           }
@@ -28,6 +30,8 @@ const useStyles = createUseStyles({
               return '#f39c12 !important';
             case 'error':
               return '#FD0C0B !important';
+            case 'success':
+              return '#218838 !important';
             default:
               return '#0067b9 !important';
           }

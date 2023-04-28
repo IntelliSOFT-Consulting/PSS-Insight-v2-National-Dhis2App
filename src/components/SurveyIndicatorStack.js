@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import { Checkbox } from '@dhis2/ui';
 import Table from './Table';
-import {
-  ExclamationCircleIcon,
-} from '@heroicons/react/24/solid';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import InfoModal from './InfoModal';
 
 const useStyles = createUseStyles({
@@ -53,22 +51,21 @@ export default function IndicatorStack({
   indicator,
   disabled,
   formik,
-  isView,
+  referenceSheet,
 }) {
   const classes = useStyles();
   const [infoModal, setInfoModal] = useState(null);
 
-
   const columns = [
     {
-      name: indicator.code || '',
+      name: indicator.categoryName || '',
       key: 'code',
       width: '7rem',
     },
     {
       name: (
         <div className={classes.tableFlex}>
-          <span>{indicator.categoryName || ''}</span>
+          <span>{indicator.indicatorName || ''}</span>
           <ExclamationCircleIcon
             className={classes.info}
             onClick={() => setInfoModal(indicator)}
@@ -116,6 +113,7 @@ export default function IndicatorStack({
         open={infoModal}
         type='info'
         footer={null}
+        referenceSheet={referenceSheet}
       />
     </div>
   );

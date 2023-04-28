@@ -14,7 +14,7 @@ const query = {
     resource: 'me',
     params: {
       fields: 'id,displayName,organisationUnits[id,name]',
-    }
+    },
   },
 };
 
@@ -34,6 +34,10 @@ const MyApp = () => (
               <Route
                 path='/surveys/*'
                 element={<Layout layout='Surveys' user={data} />}
+              />
+              <Route
+                path='/notifications/*'
+                element={<Layout layout='Notifications' user={data} />}
               />
               <Route path='/*' element={<Home />} />
             </Routes>

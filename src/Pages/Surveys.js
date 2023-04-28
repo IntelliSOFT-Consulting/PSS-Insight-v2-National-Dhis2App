@@ -82,8 +82,6 @@ export default function Surveys({ user }) {
     fetchSurveys();
   }, []);
 
-  useEffect(() => {}, [selected, currentPage]);
-
   const handleChanged = async selected => {
     const data = await listSurveys(
       user?.me?.id,
@@ -155,11 +153,37 @@ export default function Surveys({ user }) {
     },
   ];
 
-  const handlePageChange = page => {
-    setCurrentPage(page);
-  };
-
-  console.log(sortSurveys(surveys));
+  const expiredCols = [
+    {
+      name: 'Respondents',
+      index: 'emailAddress',
+      render: col => col.emailAddress,
+    },
+    {
+      name: 'Date Expired',
+      index: 'date',
+      render: col =>
+        col.expiryDate ? format(new Date(col.expiryDate), 'dd/MM/yyyy') : '-',
+    },
+    {
+      name: 'New Link Requested',
+      index: 'newLinkRequested',
+      render: col => (col.newLinkRequested ? 'Yes' : 'No'),
+    },
+    {
+      name: 'Actions',
+      render: col => (
+        <div>
+          <Link
+            className={classes.buttonLink}
+            to={`/surveys/response/${col.respondentId}`}
+          >
+            View
+          </Link>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <Card title={title}>
@@ -192,7 +216,7 @@ export default function Surveys({ user }) {
           sortSurveys(surveys)?.map(survey => (
             <MiniCard title={survey.surveyName} key={survey.surveyId}>
               <Table
-                columns={columns}
+                columns={selected === 'Expired' ? expiredCols : columns}
                 tableData={survey.respondentList}
                 loading={loading}
                 bordered

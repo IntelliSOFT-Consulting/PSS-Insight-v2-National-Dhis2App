@@ -41,10 +41,9 @@ const useStyles = createUseStyles({
 
 export default function ResponseGrid({
   indicator,
-  formik,
-  isView,
-  fileNames,
-  setFileNames,
+  selectedIndicators,
+  setSelectedIndicators,
+  referenceSheet,
 }) {
   const classes = useStyles();
   const [infoModal, setInfoModal] = useState(null);
@@ -109,17 +108,19 @@ export default function ResponseGrid({
     <div className={classes.indicatorStack}>
       <div className={classes.indicatorCheckbox}>
         <Checkbox
-          // disabled={
-          //   disabled || checkDisable(indicator.categoryId, formik.values)
-          // }
-          // checked={Object.values(formik.values)?.includes(indicator.categoryId)}
-          // onChange={({ checked }) => {
-          //   if (checked) {
-          //     formik.setFieldValue(indicator.categoryId, indicator.categoryId);
-          //   } else {
-          //     formik.setFieldValue(indicator.categoryId, '');
-          //   }
-          // }}
+          checked={selectedIndicators?.includes(indicator.categoryId)}
+          onChange={({ checked }) => {
+            if (checked) {
+              setSelectedIndicators([
+                ...selectedIndicators,
+                indicator.categoryId,
+              ]);
+            } else {
+              setSelectedIndicators(
+                selectedIndicators.filter(id => id !== indicator.categoryId)
+              );
+            }
+          }}
         />
       </div>
       <div className={classes.indicatorTable}>
@@ -140,6 +141,7 @@ export default function ResponseGrid({
         open={infoModal}
         type='info'
         footer={null}
+        referenceSheet={referenceSheet}
       />
     </div>
   );

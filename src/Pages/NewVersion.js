@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import { Field, Input, TextArea, AlertBar } from '@dhis2/ui';
-import { Button, Skeleton } from 'antd';
+import { Button } from 'antd';
 import {
   saveTemplate,
   getInternationalIndicators,
@@ -21,6 +21,7 @@ import {
   formatVersionDetails,
   groupIndicatorsByVersion,
 } from '../utils/helpers';
+import Notification from '../components/Notification';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -28,6 +29,9 @@ const useStyles = createUseStyles({
     top: '3.5rem',
     left: '50%',
     transform: 'translateX(-50%)',
+  },
+  hidden: {
+    display: 'none',
   },
 });
 
@@ -41,6 +45,7 @@ export default function NewVersion({ user }) {
   const [indicators, setIndicators] = useState([]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
+  const [selectedIndicators, setSelectedIndicators] = useState([]);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -56,28 +61,13 @@ export default function NewVersion({ user }) {
     validationSchema,
     onSubmit: async values => {
       try {
-        const indicatorValues = Object.keys(values).filter(
-          value =>
-            value &&
-            value !== 'versionName' &&
-            value !== 'versionDescription' &&
-            value !== 'isPublished' &&
-            value !== 'createdBy' &&
-            value !== 'status'
-        );
-        const getSelectedIndicators = indicatorValues
-          .filter(item => values[item])
-          .map(indicator => ({
-            id: indicator?.split('-')[0],
-            isLatest: indicator?.split('-')[1] ? true : false,
-          }));
         let response;
         if (id) {
           const data = {
             versionDescription: values.versionDescription,
             isPublished: values.isPublished,
             publishedBy: values.isPublished ? user?.me?.username : null,
-            indicators: getSelectedIndicators,
+            indicators: selectedIndicators,
             createdBy: details?.createdBy,
           };
 
@@ -89,7 +79,7 @@ export default function NewVersion({ user }) {
             versionDescription: values.versionDescription,
             isPublished: values.isPublished,
             publishedBy: values.isPublished ? user?.me?.username : null,
-            indicators: getSelectedIndicators,
+            indicators: selectedIndicators,
           };
           response = await saveTemplate(data);
         }
@@ -100,8 +90,10 @@ export default function NewVersion({ user }) {
 
           window.scrollTo(0, 0);
           setTimeout(() => {
+            setSuccess(false);
+            formik.resetForm();
             navigate('/templates/versions');
-          }, 2000);
+          }, 1000);
         }
       } catch (error) {
         setError('Something went wrong while saving the template');
@@ -118,6 +110,7 @@ export default function NewVersion({ user }) {
       const formattedData = formatVersionDetails(data);
 
       setDetails(formattedData);
+      setSelectedIndicators(formattedData.indicators);
 
       formik.setValues(formattedData);
 
@@ -147,17 +140,6 @@ export default function NewVersion({ user }) {
     }
     if (!id) formik.resetForm();
   }, [id]);
-
-  useEffect(() => {
-    if (success) {
-      formik.resetForm();
-      const successTimeout = setTimeout(() => {
-        setSuccess(false);
-      }, 3000);
-
-      return () => clearTimeout(successTimeout);
-    }
-  }, [success]);
 
   const updateIndicators = (id, description) => {
     const updatedIndicators = indicators.map(category => {
@@ -232,30 +214,27 @@ export default function NewVersion({ user }) {
   return (
     <Card title='Create a Template' footer={isView ? null : footer}>
       {success && (
-        <AlertBar
-          duration={3000}
-          icon
-          success
-          onHidden={() => setSuccess(false)}
-          className={styles.alertBar}
+        <Notification
+          status='success'
+          onClose={() => setSuccess(false)}
+          message={success}
         >
           {success}
-        </AlertBar>
+        </Notification>
       )}
       {error && (
-        <AlertBar
-          duration={3000}
-          icon
-          critical
-          onHidden={() => setError(false)}
-          className={styles.alertBar}
+        <Notification
+          status='error'
+          onClose={() => setError(false)}
+          message={error}
         >
           {error}
-        </AlertBar>
+        </Notification>
       )}
       <form className={classes.formGrid}>
         <Field
           label='Version Number'
+          className={styles.hidden}
           validationText={
             formik.errors.versionName && formik.touched.versionName
               ? formik.errors.versionName
@@ -310,12 +289,9 @@ export default function NewVersion({ user }) {
           <Loading type='skeleton' />
         ) : (
           <div className={classes.indicators}>
-            {indicators?.map(indicator => (
-              <Accordion
-                key={indicator.categoryName}
-                title={indicator.categoryName}
-              >
-                {indicator?.indicators?.map(indicator => (
+            {indicators?.map(item => (
+              <Accordion key={item.categoryName} title={item.categoryName}>
+                {item?.indicators?.map(indicator => (
                   <IndicatorStack
                     disabled={isView}
                     key={indicator.categoryId}
@@ -325,6 +301,9 @@ export default function NewVersion({ user }) {
                     formik={formik}
                     isView={isView}
                     userId={user?.me?.username}
+                    referenceSheet={item.referenceSheet}
+                    selectedIndicators={selectedIndicators}
+                    setSelectedIndicators={setSelectedIndicators}
                   />
                 ))}
               </Accordion>

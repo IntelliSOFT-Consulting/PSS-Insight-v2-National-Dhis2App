@@ -22,6 +22,7 @@ import Modal from '../components/Modal';
 import { format } from 'date-fns';
 import moment from 'moment';
 import { formatSurveyDetails, sortIndicators } from '../utils/helpers';
+import Notification from '../components/Notification';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -65,6 +66,7 @@ export default function NewSurvey({ user }) {
   const [error, setError] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [surveyDetails, setSurveyDetails] = useState({});
+  const [referenceSheet, setReferenceSheet] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -123,17 +125,19 @@ export default function NewSurvey({ user }) {
               emailAddressList: values.email,
             });
             if (reponse) setSending(false);
+            setSuccess('Survey sent successfully');
           }
+          setSuccess('Survey saved successfully');
           setShowModal(false);
-          setSuccess(response);
           setError(false);
           setTimeout(() => {
+            setSuccess(false);
             navigate('/surveys/menu');
           }, 1000);
         }
       } catch (error) {
         setSending(false);
-        setError(true);
+        setError('Something went wrong, please try again later');
         setSuccess(false);
       }
     },
@@ -142,11 +146,12 @@ export default function NewSurvey({ user }) {
   const getIndicators = async () => {
     try {
       const data = await getNationalIndicators();
+      setReferenceSheet(data?.referenceSheet);
       const sortedIndicators = sortIndicators(data?.details);
       setIndicators(sortedIndicators);
       setLoadingIndicators(false);
     } catch (error) {
-      setError(error?.response?.data);
+      setError('Something went wrong, please try again later');
       setLoadingIndicators(false);
     }
   };
@@ -158,7 +163,7 @@ export default function NewSurvey({ user }) {
       setSurveyDetails(formatted);
       formik.setValues(formatted);
     } catch (error) {
-      setError(error?.response?.data);
+      setError('Something went wrong, please try again later');
     }
   };
 
@@ -204,7 +209,25 @@ export default function NewSurvey({ user }) {
       </Button>
       <Button
         name='Small button'
-        onClick={() => setShowModal(true)}
+        onClick={() => {
+          const indicatorValues = Object.keys(formik.values)
+            .filter(
+              value =>
+                value &&
+                value !== 'surveyName' &&
+                value !== 'surveyDescription' &&
+                value !== 'status' &&
+                value !== 'expiryDateTime' &&
+                value !== 'email' &&
+                value !== 'surveyLandingPage'
+            )
+            .filter(item => formik.values[item]);
+          if (indicatorValues.length > 0) {
+            setShowModal(true);
+          } else {
+            setError('Please select at least one indicator');
+          }
+        }}
         small
         value='default'
         className={classes.btnSuccess}
@@ -217,26 +240,18 @@ export default function NewSurvey({ user }) {
   return (
     <Card title='Create a Survey' footer={isView ? null : footer}>
       {success && (
-        <AlertBar
-          duration={3000}
-          icon
-          success
-          onHidden={() => setSuccess(false)}
-          className={styles.alertBar}
-        >
-          Survey saved successfully
-        </AlertBar>
+        <Notification
+          status='success'
+          message={success}
+          onClose={() => setSuccess(false)}
+        />
       )}
       {error && (
-        <AlertBar
-          duration={3000}
-          icon
-          critical
-          onHidden={() => setError(false)}
-          className={styles.alertBar}
-        >
-          Error saving survey
-        </AlertBar>
+        <Notification
+          status='error'
+          message={error}
+          onClose={() => setError(false)}
+        />
       )}
       <form className={classes.formGrid}>
         <Field
@@ -256,6 +271,7 @@ export default function NewSurvey({ user }) {
               formik.setFieldValue('surveyName', e.target.value);
             }}
             placeholder='Survey Name'
+            size='large'
             value={formik.values.surveyName}
             error={formik.errors.surveyName && formik.touched.surveyName}
           />
@@ -337,6 +353,7 @@ export default function NewSurvey({ user }) {
                     indicator={indicator}
                     onChange={() => {}}
                     formik={formik}
+                    referenceSheet={referenceSheet}
                   />
                 ))}
               </Accordion>

@@ -58,8 +58,6 @@ export default function Versions({ user }) {
     }
   };
 
-  console.log(user);
-
   useEffect(() => {
     getVersons();
   }, [deleted]);

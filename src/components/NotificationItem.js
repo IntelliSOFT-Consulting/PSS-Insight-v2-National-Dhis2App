@@ -21,7 +21,8 @@ const useStyles = createUseStyles({
   description: {
     fontSize: 14,
     fontWeight: 300,
-    marginRight: '20%',
+    paddingRight: '6rem !important',
+    lineHeight: 1.5,
   },
     date: {
     fontSize: 12,
@@ -38,7 +39,7 @@ export default function NotificationItem({ notification }) {
   return (
     <div key={notification.id} className={classes.notification}>
       <h3 className={classes.title}>{notification.title}</h3>
-      <p className={classes.description}>{notification.description}</p>
+      <p className={classes.description}>{notification.message}</p>
 
       <p className={classes.date}>
         {notification.createdAt

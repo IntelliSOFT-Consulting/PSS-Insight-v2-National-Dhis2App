@@ -16,6 +16,7 @@ import Resend from '../components/Resend';
 import moment from 'moment';
 import { format } from 'date-fns';
 import Title from '../components/Title';
+import { useFormik } from 'formik';
 
 const useStyles = createUseStyles({
   header: {
@@ -65,6 +66,7 @@ const useStyles = createUseStyles({
 export default function Response() {
   const [surveySubmission, setSurveySubmission] = useState(null);
   const [newExpiry, setNewExpiry] = useState(null);
+  const [selectedIndicators, setSelectedIndicators] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,9 +122,6 @@ export default function Response() {
 
   const resendSurvey = async (values = {}) => {
     try {
-      console.log(
-        format(new Date(values.expiryDateTime), 'yyyy-MM-dd HH:mm:ss')
-      );
       const ids = surveySubmission.questions
         .map(category => {
           return category.indicators.map(indicator => indicator.categoryId);
@@ -131,14 +130,19 @@ export default function Response() {
       const payload = isExpired(surveySubmission?.respondentDetails?.expiresAt)
         ? {
             indicators: ids,
-            expiryDateTime: moment(newExpiry).format('YYYY-MM-DD HH:mm:ss'),
+            expiryDateTime: format(
+              new Date(new Date(newExpiry).setHours(23, 59, 59, 999)),
+              'yyyy-MM-dd HH:mm:ss'
+            ),
           }
         : {
-            indicators: ids,
+            indicators: selectedIndicators,
             comments: values.comments,
-            // 'YYYY-MM-DD HH:mm:ss'
             expiryDateTime: format(
-              new Date(values.expiryDateTime),
+              new Date(),
+              new Date(
+                new Date(values.expiryDateTime).setHours(23, 59, 59, 999)
+              ),
               'yyyy-MM-dd HH:mm:ss'
             ),
           };
@@ -151,7 +155,6 @@ export default function Response() {
       setSuccess('Survey resent successfully!');
       form.resetFields();
     } catch (error) {
-      console.log(error);
       setError(
         'Oops! Something went wrong. Please refresh the page and try again.'
       );
@@ -260,7 +263,7 @@ export default function Response() {
           <div>
             {isExpired(surveySubmission?.respondentDetails?.expiresAt) ? (
               <div className={classes.expired}>
-                <Title text='Set Expiration Date' type='secondary' />
+                <Title text='Set Expiration Date' />
                 <DatePicker
                   label='Enter Expiry Date'
                   name='expirydate'
@@ -271,15 +274,28 @@ export default function Response() {
                   }}
                   value={newExpiry}
                   required
+                  disabledDate={current =>
+                    current && current < moment().subtract(1, 'days')
+                  }
                 />
               </div>
             ) : (
               surveySubmission?.questions?.map((question, index) => (
-                <div>
-                  <h3>{question.categoryName}</h3>
+                <div key={index}>
+                  {question.indicators?.length > 0 && (
+                    <Title text={question.categoryName} />
+                  )}
                   <div>
                     {question.indicators.map((indicator, index) => (
-                      <ResponseGrid key={index} indicator={indicator} />
+                      <ResponseGrid
+                        selectedIndicators={selectedIndicators}
+                        setSelectedIndicators={setSelectedIndicators}
+                        key={index}
+                        indicator={indicator}
+                        referenceSheet={
+                          surveySubmission?.respondentDetails?.referenceSheet
+                        }
+                      />
                     ))}
                   </div>
                 </div>
