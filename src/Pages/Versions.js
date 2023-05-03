@@ -3,8 +3,7 @@ import { getVersions, deleteVersion } from '../api/api';
 import { createUseStyles } from 'react-jss';
 import Card from '../components/Card';
 import { format } from 'date-fns';
-import Table from '../components/Table';
-import { Popconfirm } from 'antd';
+import { Table, Popconfirm } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import Empty from '../components/Empty';
 import Loader from '../components/Loader';
@@ -19,6 +18,13 @@ const useStyles = createUseStyles({
       textDecoration: 'underline',
       margin: '0 3px',
       padding: 0,
+      '&:not(:first-child)': {
+        '&:before': {
+          content: '"|"',
+          margin: '0 3px',
+          color: '#005a8e !important',
+        },
+      },
     },
   },
   edit: {
@@ -64,56 +70,54 @@ export default function Versions({ user }) {
 
   const columns = [
     {
-      name: '#',
-      key: 'id',
-      render: (row, index) => index + 1,
+      title: '#',
+      dataIndex: 'id',
+      render: (_, _row, index) => index + 1,
     },
     {
-      name: 'DATE CREATED',
-      key: 'createdAt',
-      render: row =>
+      title: 'DATE CREATED',
+      dataIndex: 'createdAt',
+      render: (_, row) =>
         row.createdAt && format(new Date(row.createdAt), 'dd/MM/yyyy'),
     },
     {
-      name: 'CREATED BY',
-      key: 'createdBy',
+      title: 'CREATED BY',
+      dataIndex: 'createdBy',
     },
     {
-      name: 'VERSION NUMBER',
-      key: 'versionName',
+      title: 'VERSION NUMBER',
+      dataIndex: 'versionName',
     },
     {
-      name: 'DESCRIPTION',
-      key: 'versionDescription',
+      title: 'DESCRIPTION',
+      dataIndex: 'versionDescription',
     },
     {
-      name: 'STATUS',
-      key: 'status',
-      render: row => row.status && toSentenceCase(row.status),
+      title: 'STATUS',
+      dataIndex: 'status',
+      render: (_, row) => row.status && toSentenceCase(row.status),
     },
     {
-      name: 'PUBLISHED BY',
-      key: 'publishedBy',
+      title: 'PUBLISHED BY',
+      dataIndex: 'publishedBy',
     },
     {
-      name: 'ACTIONS',
-      key: 'actions',
-      render(row) {
+      title: 'ACTIONS',
+      dataIndex: 'actions',
+      render(_, row) {
         return (
           <div className={classes.actions}>
             <button
               onClick={() => {
                 localStorage.setItem('currentIndicator', JSON.stringify(row));
-                navigate(`/templates/view/${row.id}`);
+                navigate(`/templates/view/${row?.id}`);
               }}
               className={classes.edit}
             >
               View
-            </button>{' '}
-            |{' '}
+            </button>
             {row?.status !== 'PUBLISHED' &&
-            row.createdBy === user?.me?.username ? (
-              <>
+              row?.createdBy === user?.me?.username && (
                 <button
                   className={classes.edit}
                   onClick={() => {
@@ -121,26 +125,27 @@ export default function Versions({ user }) {
                       'currentIndicator',
                       JSON.stringify(row)
                     );
-                    navigate(`/templates/edit/${row.id}`);
+                    navigate(`/templates/edit/${row?.id}`);
                   }}
                 >
                   Edit
-                </button>{' '}
-                |{' '}
-              </>
-            ) : null}
-            <Popconfirm
-              title='Are you sure you want to delete this version?'
-              onConfirm={() => handleDelete(row.id)}
-            >
-              <button className={classes.delete}>Delete</button>
-            </Popconfirm>
+                </button>
+              )}
+            {row?.status !== 'PUBLISHED' && (
+              <Popconfirm
+                title='Are you sure you want to delete this version?'
+                onConfirm={() => handleDelete(row?.id)}
+              >
+                <button className={classes.delete}>Delete</button>
+              </Popconfirm>
+            )}
           </div>
         );
       },
     },
   ];
 
+  console.log(versions);
   return (
     <Card title='TEMPLATES'>
       {versions?.length === 0 && !loading ? (
@@ -148,16 +153,12 @@ export default function Versions({ user }) {
       ) : (
         <Table
           columns={columns}
-          tableData={versions}
+          dataSource={versions || []}
           loading={loading}
-          pageSize={15}
-          emptyMessage=''
-          total={versions?.length}
-          pagination={versions?.length > 15}
-          hidePageSizeSelect
-          hidePageSummary
-          hidePageSelect
-          bordered
+          rowKey='id'
+          size='small'
+          pagination={versions?.length > 10 ? { pageSize: 10 } : false}
+          locale={{ emptyText: <Empty /> }}
         />
       )}
     </Card>

@@ -4,19 +4,19 @@ import Response from '../Pages/Response';
 
 const routes = [
   {
-    path: '/menu',
+    path: '/surveys/menu',
     element: Surveys,
   },
   {
-    path: '/create',
+    path: '/surveys/create',
     element: NewSurvey,
   },
   {
-    path: '/edit/:id',
+    path: '/surveys/edit/:id',
     element: NewSurvey,
   },
   {
-    path: '/response/:id',
+    path: '/surveys/response/:id',
     element: Response,
   },
 ];

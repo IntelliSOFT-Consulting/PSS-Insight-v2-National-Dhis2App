@@ -27,7 +27,7 @@ const MyApp = () => (
           if (loading) return <span>...</span>;
           return (
             <Routes>
-              <Route
+              {/* <Route
                 path='/templates/*'
                 element={<Layout layout='Templates' user={data} />}
               />
@@ -38,8 +38,9 @@ const MyApp = () => (
               <Route
                 path='/notifications/*'
                 element={<Layout layout='Notifications' user={data} />}
-              />
-              <Route path='/*' element={<Home />} />
+              /> */}
+              <Route path='/*' user={data} element={<Layout user={data} />} />
+              {/* <Route path='/' element={<Home />} /> */}
             </Routes>
           );
         }}

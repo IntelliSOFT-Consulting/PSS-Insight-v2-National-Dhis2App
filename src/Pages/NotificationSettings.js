@@ -323,14 +323,14 @@ export default function NotificationSettings() {
     <Card title='NOTIFICATION SETTINGS' style={{ padding: 16 }} footer={footer}>
       {success && (
         <Notification
-          type='success'
+          status='success'
           message={success}
           onClose={() => setSuccess(null)}
         />
       )}
       {error && (
         <Notification
-          type='error'
+          status='error'
           message={error}
           onClose={() => setError(null)}
         />

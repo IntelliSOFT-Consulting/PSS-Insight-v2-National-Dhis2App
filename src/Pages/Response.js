@@ -88,7 +88,7 @@ export default function Response() {
         setSurveySubmission(data);
       } catch (error) {
         setError(
-          'Oops! Something went wrong. Please refresh the page and try again.'
+          'Something went wrong. Please refresh the page and try again.'
         );
       }
       setLoading(false);
@@ -155,14 +155,20 @@ export default function Response() {
       setSuccess('Survey resent successfully!');
       form.resetFields();
     } catch (error) {
-      setError(
-        'Oops! Something went wrong. Please refresh the page and try again.'
-      );
+      setError('Something went wrong. Please refresh the page and try again.');
     }
   };
   const classes = useStyles({
     isExpired: isExpired(surveySubmission?.respondentDetails?.expiresAt),
   });
+
+  const handleConfirm = () => {
+    try {
+      console.log('confirm');
+    } catch (error) {
+      setError('Something went wrong. Please refresh the page and try again.');
+    }
+  };
 
   const footer = (
     <div className={classes.cardFooter}>

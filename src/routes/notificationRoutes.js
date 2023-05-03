@@ -3,11 +3,11 @@ import NotificationSettings from '../Pages/NotificationSettings';
 
 const routes = [
   {
-    path: '/list',
+    path: '/notifications/list',
     element: Notifications,
   },
   {
-    path: '/settings',
+    path: '/notifications/settings',
     element: NotificationSettings,
   },
 ];

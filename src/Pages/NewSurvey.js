@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
-import { Field, TextArea, AlertBar } from '@dhis2/ui';
+import { Field, TextArea } from '@dhis2/ui';
 import { Button, Form, Input, Select, DatePicker } from 'antd';
 import {
   addRespondents,
@@ -49,14 +49,6 @@ const validationSchema = Yup.object({
   surveyDescription: Yup.string().required('Description is required'),
   surveyName: Yup.string().required('Name is required'),
 });
-
-const options = [];
-for (let i = 10; i < 36; i++) {
-  options.push({
-    value: i.toString(36) + i,
-    label: i.toString(36) + i,
-  });
-}
 
 export default function NewSurvey({ user }) {
   const [loadingIndicatrors, setLoadingIndicators] = useState(true);
