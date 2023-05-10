@@ -6,7 +6,7 @@ import templateRoutes from '../routes/templateRoutes';
 import surveyRoutes from '../routes/surveyRoutes';
 import notificationRoutes from '../routes/notificationRoutes';
 import configRoutes from '../routes/configRoutes';
-import { Grid, Layout, Menu } from 'antd';
+import { Layout, Menu } from 'antd';
 import Home from '../Pages/Home';
 import { createUseStyles } from 'react-jss';
 

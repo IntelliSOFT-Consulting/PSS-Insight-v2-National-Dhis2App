@@ -20,8 +20,11 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function TableHeader({ column, index }) {
-  const classes = useStyles({ hidden: column.hidden });
+export default function TableHeader({ column, index, ...props }) {
+  const classes = useStyles({
+    hidden: column.hidden,
+    activeIndicator: props.activeIndicator,
+  });
   return (
     <DataTableColumnHeader
       key={index}

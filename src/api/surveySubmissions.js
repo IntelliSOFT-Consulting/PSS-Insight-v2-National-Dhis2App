@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://172.104.91.99:7001/api/v1',
-});
+import { api } from './base';
 
 export const getSurveySubmissions = async (filter, limit, pageNo) => {
   const { data } = await api.get('/survey', {

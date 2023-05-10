@@ -145,7 +145,6 @@ export default function Versions({ user }) {
     },
   ];
 
-  console.log(versions);
   return (
     <Card title='TEMPLATES'>
       {versions?.length === 0 && !loading ? (
