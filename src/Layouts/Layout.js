@@ -18,6 +18,7 @@ const useStyles = createUseStyles({
       backgroundColor: '#f0f2f5',
       '& .ant-layout-sider': {
         backgroundColor: '#fff',
+        position: 'fixed',
       },
     },
   },

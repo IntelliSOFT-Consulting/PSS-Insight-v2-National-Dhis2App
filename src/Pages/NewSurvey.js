@@ -108,7 +108,7 @@ export default function NewSurvey({ user }) {
           if (values.status === 'PUBLISHED') {
             setSending(true);
             const reponse = await addRespondents({
-              surveyId: response?.id,
+              surveyId: response?.id || id,
               customAppUrl: `http://pssinternational.intellisoftkenya.com:3001/survey`,
               expiryDateTime: format(
                 new Date(values.expiryDateTime),

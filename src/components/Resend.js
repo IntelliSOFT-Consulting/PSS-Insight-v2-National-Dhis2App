@@ -14,9 +14,18 @@ const useStyles = createUseStyles({
 export default function Resend({ Form, form, ...props }) {
   const classes = useStyles();
 
+  const valueChange = (changedValues, allValues) => {
+    console.log(changedValues, allValues);
+  };
+
   return (
     <Modal key={props.key} title='Resend Survey' {...props}>
-      <Form form={form} layout='vertical' onFinish={props.onFinish}>
+      <Form
+        onValuesChange={valueChange}
+        form={form}
+        layout='vertical'
+        onFinish={props.onFinish}
+      >
         <Form.Item
           label='Enter Comments to Respondents'
           name='comments'
