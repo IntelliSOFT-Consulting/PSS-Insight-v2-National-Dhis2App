@@ -6,6 +6,7 @@ import templateRoutes from '../routes/templateRoutes';
 import surveyRoutes from '../routes/surveyRoutes';
 import notificationRoutes from '../routes/notificationRoutes';
 import configRoutes from '../routes/configRoutes';
+import routineRoutes from '../routes/routineRoutes';
 import { Layout, Menu } from 'antd';
 import Home from '../Pages/Home';
 import { createUseStyles } from 'react-jss';
@@ -24,7 +25,7 @@ const useStyles = createUseStyles({
   },
   layout: {
     display: 'grid !important',
-    gridTemplateColumns: '200px 1fr',
+    gridTemplateColumns: '250px 1fr',
     gridTemplateRows: '1fr',
     gridTemplateAreas: '"sidebar main"',
     minHeight: 'calc(100vh - 48px)',
@@ -86,6 +87,9 @@ export default function MainLayout({ layout, user }) {
       ],
     },
     {
+      label: <Link to='/routine'>Routine Data Submissions</Link>,
+    },
+    {
       label: 'Notifications',
       key: 'notifications',
       children: [
@@ -111,6 +115,7 @@ export default function MainLayout({ layout, user }) {
     ...surveyRoutes,
     ...notificationRoutes,
     ...configRoutes,
+    ...routineRoutes,
   ];
 
   return (
@@ -122,7 +127,7 @@ export default function MainLayout({ layout, user }) {
           <div className={classes.layout}>
             <Layout>
               <Sider
-                width={200}
+                width={250}
                 style={{
                   minHeight: 'calc(100vh - 48px)',
                 }}
