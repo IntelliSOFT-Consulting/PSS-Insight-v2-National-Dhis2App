@@ -114,7 +114,12 @@ const Table = ({
         <TableHead>
           <DataTableRow>
             {columns.map((column, index) => (
-              <TableHeader key={index} column={column} index={index} />
+              <TableHeader
+                key={index}
+                column={column}
+                index={index}
+                activeIndicator={props.activeIndicator}
+              />
             ))}
           </DataTableRow>
         </TableHead>

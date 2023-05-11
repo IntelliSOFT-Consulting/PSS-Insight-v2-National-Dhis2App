@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://172.104.91.99:7001/api/v1',
-});
+import { api } from './base';
 
 export const getOrganizationUnit = async () => {
   const { data } = await api.get('/national-instance/organisation-unit');
@@ -34,9 +30,7 @@ export const getInternationalIndicators = async () => {
 };
 
 export const getNationalIndicators = async () => {
-  const { data } = await api.get(
-    '/national-template/published-indicators'
-  );
+  const { data } = await api.get('/national-template/published-indicators');
   return data;
 };
 
@@ -61,11 +55,6 @@ export const deleteVersion = async versionId => {
 };
 
 export const updateIndicator = async datas => {
-  const { data } = await api.post(
-    '/national-template/edit-indicator',
-    datas
-  );
+  const { data } = await api.post('/national-template/edit-indicator', datas);
   return data;
 };
-
-

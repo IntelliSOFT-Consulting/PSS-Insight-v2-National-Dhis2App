@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { List } from 'antd';
 import { Link } from 'react-router-dom';
 import { createUseStyles } from 'react-jss';
-import CardItem from '../components/Card';
+import Card from '../components/Card';
 
 const useStyles = createUseStyles({
   list: {
@@ -16,31 +16,35 @@ const useStyles = createUseStyles({
   },
 });
 
+const createNavLink = (path, label) => <Link to={path}>{label}</Link>;
+
+const links = [
+  {
+    label: createNavLink('/configurations/contact', 'Contact Configurations'),
+    key: 'contact',
+  },
+  {
+    label: createNavLink('/configurations/email', 'Email Configurations'),
+    key: 'email',
+  },
+  {
+    label: createNavLink('/configurations/period', 'Period Configurations'),
+    key: 'period',
+  },
+];
+
 export default function Configurations() {
   const classes = useStyles();
-  const links = [
-    {
-      label: <Link to='/configurations/contact'>Contact Configurations</Link>,
-      key: 'contact',
-    },
-    {
-      label: <Link to='/configurations/email'>Email Configurations</Link>,
-      key: 'email',
-    },
-    {
-      label: <Link to='/configurations/period'>Period Configurations</Link>,
-      key: 'period',
-    },
-  ];
+
   return (
-    <CardItem title='Configurations'>
+    <Card title='Configurations'>
       <List
         size='large'
         bordered
         dataSource={links}
-        renderItem={item => <List.Item>{item?.label}</List.Item>}
+        renderItem={item => <List.Item key={item.key}>{item.label}</List.Item>}
         className={classes.list}
       />
-    </CardItem>
+    </Card>
   );
 }

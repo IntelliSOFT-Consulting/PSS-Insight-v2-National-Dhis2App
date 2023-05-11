@@ -40,10 +40,7 @@ const useStyles = createUseStyles({
     borderColor: '#aaaaaa !important',
   },
   cardFooter: {
-    background: '#005a8e0f',
     margin: 0,
-    padding: '5px 1.5rem',
-    marginTop: '20px',
     fontSize: '14px',
     display: 'flex',
     justifyContent: ({ isExpired }) => (isExpired ? 'flex-start' : 'flex-end'),
@@ -122,28 +119,37 @@ export default function Response() {
 
   const resendSurvey = async (values = {}) => {
     try {
+      values.expiryDateTime = new Date(values.expiryDateTime);
+
+      console.log(
+        'date 1: ',
+        values.expiryDateTime,
+        format(
+          new Date(values.expiryDateTime.setHours(23, 59, 59, 999)),
+          'yyyy-MM-dd hh:mm:ss'
+        )
+      );
       const ids = surveySubmission.questions
         .map(category => {
           return category.indicators.map(indicator => indicator.categoryId);
         })
         .flat();
+
       const payload = isExpired(surveySubmission?.respondentDetails?.expiresAt)
         ? {
             indicators: ids,
             expiryDateTime: format(
               new Date(new Date(newExpiry).setHours(23, 59, 59, 999)),
-              'yyyy-MM-dd HH:mm:ss'
+              'yyyy-MM-dd hh:mm:ss'
             ),
           }
         : {
             indicators: selectedIndicators,
             comments: values.comments,
+            surveyId: id,
             expiryDateTime: format(
-              new Date(),
-              new Date(
-                new Date(values.expiryDateTime).setHours(23, 59, 59, 999)
-              ),
-              'yyyy-MM-dd HH:mm:ss'
+              new Date(values.expiryDateTime.setHours(23, 59, 59, 999)),
+              'yyyy-MM-dd hh:mm:ss'
             ),
           };
       const data = await resendSurveySubmission(
@@ -155,6 +161,7 @@ export default function Response() {
       setSuccess('Survey resent successfully!');
       form.resetFields();
     } catch (error) {
+      console.log(error);
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
@@ -192,7 +199,7 @@ export default function Response() {
         value='default'
         className={classes.btnCancel}
       >
-        Cancel
+        Reject
       </Button>
       {!isExpired(surveySubmission?.respondentDetails?.expiresAt) && (
         <Button
@@ -276,7 +283,7 @@ export default function Response() {
                   size='large'
                   style={{ width: '40%' }}
                   onChange={value => {
-                    setNewExpiry(value);
+                    format(value, 'yyyy-MM-dd HH:mm:ss');
                   }}
                   value={newExpiry}
                   required

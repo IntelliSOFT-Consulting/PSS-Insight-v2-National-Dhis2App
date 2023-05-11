@@ -2,6 +2,7 @@ import React from 'react';
 import Card from '../components/Card';
 import { Link } from 'react-router-dom';
 import { createUseStyles } from 'react-jss';
+import { routes } from '../utils/quickLinks';
 
 const useStyles = createUseStyles({
   main: {
@@ -12,43 +13,34 @@ const useStyles = createUseStyles({
     margin: '3rem auto',
   },
   mainRoutes: {
-    display: 'flex !important',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    display: 'grid !important',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridGap: '1rem',
     width: '100% !important',
     height: ' 100%',
     padding: '2rem',
     '& a': {
-      flex: '1 1 minmax(100px, 1fr)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       height: '100%',
       padding: '3rem 1rem',
-      margin: '1rem',
+      margin: '1rem 0px',
       textAlign: 'center',
       textDecoration: 'none',
       boxShadow: '0 0 0 1px rgba(0, 103, 185, 0.3)',
       borderRadius: ' 0.25rem',
       color: '#005a8e',
-      width: 'calc(33% - 3rem)',
+      width: '100%',
       '&:hover': {
         backgroundColor: '#005a8e0f',
       },
     },
+    '@media (max-width: 768px)': {
+      gridTemplateColumns: 'repeat(2, 1fr) !important',
+    },
   },
 });
-const routes = [
-  {
-    path: '/templates/versions',
-    text: 'Local Master Indicator Template',
-  },
-  {
-    path: '/surveys/menu',
-    text: 'Surveys',
-  },
-  {
-    path: '/notifications/list',
-    text: 'Notifications',
-  },
-];
 
 export default function Home() {
   const classes = useStyles();

@@ -47,7 +47,7 @@ export default function Surveys({ user }) {
     'Draft',
     'Pending',
     'Verified',
-    'Cancelled',
+    'Rejected',
     'Expired',
   ];
 

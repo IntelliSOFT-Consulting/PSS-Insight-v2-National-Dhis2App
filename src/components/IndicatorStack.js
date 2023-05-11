@@ -6,7 +6,6 @@ import {
   ExclamationCircleIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/solid';
-import EditModal from './EditModal';
 import InfoModal from './InfoModal';
 import { updateIndicator } from '../api/api';
 import { formatLatestId, checkDisable } from '../utils/helpers';
@@ -60,6 +59,7 @@ const useStyles = createUseStyles({
     fontWeight: '500',
   },
 });
+
 
 export default function IndicatorStack({
   indicator,
