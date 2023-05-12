@@ -42,6 +42,7 @@ export default function Surveys({ user }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const states = [
     "All",
@@ -147,18 +148,23 @@ export default function Surveys({ user }) {
           </Tab>
         ))}
       </TabBar>
+
       <div style={{ padding: 20 }}>
         {loading && <Loader />}
-
-        <Table
-          columns={columns}
-          dataSource={data}
-          loading={loading}
-          locale={{
-            emptyText: <Empty />,
-          }}
-          bordered
-        />
+        {surveys?.length === 0 && <Empty message='No Submissions' />}
+      
+            {surveys?.length > 0 && (
+              <Table
+                columns={columns}
+                dataSource={activeTab === 0 ? data : filteredData}
+                loading={loading}
+                locale={{
+                  emptyText: <Empty />,
+                }}
+                bordered
+              />
+            )}
+        
       </div>
 
       {/* <Pagination
