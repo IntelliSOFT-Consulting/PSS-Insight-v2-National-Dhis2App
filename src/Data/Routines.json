@@ -1,26 +1,58 @@
 [
     {
-       "submissionId":1,
-       "name":"john doe",
-       "submissionDate":"john doe",
-       "status":"pending"
+       "id": 1,
+       "selectedPeriod": "2023",
+       "status": "DRAFT",
+       "dataEntryDate": "2023-05-10T07:24:15.703+00:00",
+       "createdAt": "2023-05-10T07:24:15.703+00:00",
+       "dataEntryPerson": {
+         "username": "admin",
+         "id": "JKDHVY",
+         "surname": "admin",
+         "firstName": "admin",
+         "email": "admin@pss.com"
+       }
+    },
+     {
+           "id": 2,
+           "selectedPeriod": "2023",
+           "status": "DRAFT",
+           "dataEntryDate": "2023-05-10T07:24:15.703+00:00",
+           "createdAt": "2023-05-10T07:24:15.703+00:00",
+           "dataEntryPerson": {
+             "username": "admin",
+             "id": "JKDHVY",
+             "surname": "admin",
+             "firstName": "admin",
+             "email": "admin@pss.com"
+           }
+       },
+  {
+       "id": 3,
+       "selectedPeriod": "2023",
+       "status": "DRAFT",
+       "dataEntryDate": "2023-05-10T07:24:15.703+00:00",
+       "createdAt": "2023-05-10T07:24:15.703+00:00",
+       "dataEntryPerson": {
+         "username": "admin",
+         "id": "JKDHVY",
+         "surname": "admin",
+         "firstName": "admin",
+         "email": "admin@pss.com"
+       }
     },
     {
-       "submissionId":2,
-       "name":"john doe",
-       "submissionDate":"john doe",
-       "status":"pending"
-    },
-    {
-       "submissionId":3,
-       "name":"john doe",
-       "submissionDate":"john doe",
-       "status":"pending"
-    },
-    {
-       "submissionId":4,
-       "name":"john doe",
-       "submissionDate":"john doe",
-       "status":"pending"
+       "id": 4,
+       "selectedPeriod": "2023",
+       "status": "DRAFT",
+       "dataEntryDate": "2023-05-10T07:24:15.703+00:00",
+       "createdAt": "2023-05-10T07:24:15.703+00:00",
+       "dataEntryPerson": {
+         "username": "admin",
+         "id": "JKDHVY",
+         "surname": "admin",
+         "firstName": "admin",
+         "email": "admin@pss.com"
+       }
     }
  ]

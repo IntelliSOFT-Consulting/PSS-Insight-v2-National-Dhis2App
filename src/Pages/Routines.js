@@ -103,21 +103,23 @@ export default function Surveys({ user }) {
   const columns = [
     {
       title: "Respondents",
-      dataIndex: "emailAddress",
+      dataIndex: "dataEntryPerson",
       index: "emailAddress",
-      //   render: col => col.emailAddress,
+        render: (_, col) => `${col?.dataEntryPerson?.firstName} ${col?.dataEntryPerson?.surname}`
     },
     {
       title: "Date",
-      dataIndex: "date",
+      dataIndex: "createdAt",
       index: "date",
-      //   render: col =>
-      //     col.createdAt ? format(new Date(col.createdAt), 'dd/MM/yyyy') : '-',
+        render: (_, col) =>{
+            console.log(col.createdAt);
+          return col.createdAt ? format(new Date(col.createdAt), 'dd/MM/yyyy') : '-';
+        }
     },
     {
       title: "Actions",
       index: "actions",
-      render: (col) => (
+      render: (_,col) => (
         <div>
           <Link
             className={classes.buttonLink}
@@ -130,63 +132,7 @@ export default function Surveys({ user }) {
     },
   ];
 
-  const draftColumns = [
-    {
-      name: "Survey Name",
-      index: "surveyName",
-      render: (col) => col.surveyName,
-    },
-    {
-      name: "Description",
-      index: "surveyDescription",
-      render: (col) => col.surveyDescription,
-    },
-    {
-      name: "Actions",
-      render: (col) => (
-        <div>
-          <Link
-            className={classes.buttonLink}
-            to={`/surveys/edit/${col.surveyId}`}
-          >
-            View
-          </Link>
-        </div>
-      ),
-    },
-  ];
 
-  const expiredCols = [
-    {
-      name: "Respondents",
-      index: "emailAddress",
-      render: (col) => col.emailAddress,
-    },
-    {
-      name: "Date Expired",
-      index: "date",
-      render: (col) =>
-        col.expiryDate ? format(new Date(col.expiryDate), "dd/MM/yyyy") : "-",
-    },
-    {
-      name: "New Link Requested",
-      index: "newLinkRequested",
-      render: (col) => (col.newLinkRequested ? "Yes" : "No"),
-    },
-    {
-      name: "Actions",
-      render: (col) => (
-        <div>
-          <Link
-            className={classes.buttonLink}
-            to={`/surveys/response/${col.respondentId}`}
-          >
-            View
-          </Link>
-        </div>
-      ),
-    },
-  ];
 
   return (
     <Card title={title}>
@@ -206,7 +152,7 @@ export default function Surveys({ user }) {
 
         <Table
           columns={columns}
-          dataSource={surveySubmissions}
+          dataSource={data}
           loading={loading}
           locale={{
             emptyText: <Empty />,
