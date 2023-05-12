@@ -116,7 +116,7 @@ export default function ContactConfig() {
           label='Contact Us'
           name='contactUs'
         >
-          <Input size='large' placeholder='Contact us' />
+          <Input.TextArea size='large' placeholder='Contact us' rows={4}/>
         </Form.Item>
         <Form.Item
           rules={[
