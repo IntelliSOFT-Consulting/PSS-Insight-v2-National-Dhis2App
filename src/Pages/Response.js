@@ -80,6 +80,7 @@ export default function Response() {
       setLoading(true);
       try {
         const data = await getSurveySubmission(id);
+        if (data.respondentDetails.status === 'PENDING') data.responses = [];
         const populateAnswers = displayDetails(data);
         data.questions = populateAnswers;
         setSurveySubmission(data);
