@@ -68,9 +68,9 @@ export default function InfoModal(props) {
             </div>
             <div>
               <p>
-                To find a specific indicator in the document, use the search
-                function (typically Ctrl+F or Command+F) and enter the name or
-                keyword of the indicator you're looking for.
+                To find a specific indicator in the reference sheet, use the
+                search function (typically Ctrl+F or Command+F) and enter the
+                name or keyword of the indicator you're looking for.
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 const config = {
   type: 'app',
-  name: 'PSS Insight V2',
-  title: 'PSS Insight V2',
+  name: 'PSS Insight',
+  title: 'PSS Insight',
 
   entryPoints: {
     app: './src/App.js',

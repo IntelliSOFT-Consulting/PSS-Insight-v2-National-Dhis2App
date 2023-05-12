@@ -4,6 +4,8 @@ import { Form, Input, Button } from 'antd';
 import { createUseStyles } from 'react-jss';
 import { createAbout } from '../api/configurations';
 import Notification from '../components/Notification';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const useStyles = createUseStyles({
   '@global': {
@@ -25,6 +27,17 @@ const useStyles = createUseStyles({
         color: '#fff !important',
       },
     },
+    '.ql-toolbar': {
+      borderTopLeftRadius: '0.375rem',
+      borderTopRightRadius: '0.375rem',
+    },
+    '.ql-container': {
+      borderBottomLeftRadius: '0.375rem',
+      borderBottomRightRadius: '0.375rem',
+      '& .ql-editor': {
+        minHeight: '200px',
+      },
+    },
   },
   footer: {
     display: 'flex',
@@ -35,6 +48,7 @@ const useStyles = createUseStyles({
       },
     },
   },
+  about: {},
 });
 
 export default function ContactConfig() {
@@ -49,7 +63,7 @@ export default function ContactConfig() {
       const data = await createAbout(values);
       if (data) setSuccess('Contact configuration updated successfully');
     } catch (error) {
-      console.log(error)
+      console.log(error);
       setError('Something went wrong, please try again later');
     }
   };
@@ -114,7 +128,7 @@ export default function ContactConfig() {
           label='About Us'
           name='aboutUs'
         >
-          <Input.TextArea size='large' placeholder='About us' rows={4} />
+          <ReactQuill theme='snow' className={classes.about} />
         </Form.Item>
       </Form>
     </Card>

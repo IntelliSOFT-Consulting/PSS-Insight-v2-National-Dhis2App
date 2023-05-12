@@ -174,6 +174,14 @@ export default function NewVersion({ user }) {
     setIndicators(updatedIndicators);
   };
 
+  useEffect(() => {
+    if (formik.errors.versionDescription && formik.touched.versionDescription) {
+      const descriptionRef = document.getElementById('versionDescription');
+      descriptionRef.scrollIntoView({ behavior: 'smooth' });
+      descriptionRef.focus();
+    }
+  }, [formik.errors.versionDescription, formik.touched.versionDescription]);
+
   const footer = (
     <div className={classes.cardFooter}>
       <Button
@@ -268,6 +276,7 @@ export default function NewVersion({ user }) {
         >
           <TextArea
             name='versionDescription'
+            id='versionDescription'
             onChange={({ value }) =>
               formik.setFieldValue('versionDescription', value)
             }
