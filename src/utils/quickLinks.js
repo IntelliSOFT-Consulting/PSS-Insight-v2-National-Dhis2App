@@ -8,6 +8,10 @@ export const routes = [
     text: 'Surveys',
   },
   {
+    path: '/routine',
+    text: 'Routine Data Submissions',
+  },
+  {
     path: '/notifications/list',
     text: 'Notifications',
   },
@@ -15,4 +19,6 @@ export const routes = [
     path: '/configurations',
     text: 'Configurations',
   }
+  
 ];
+
