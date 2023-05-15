@@ -270,7 +270,10 @@ export default function Response() {
               headers={col2}
               data={{
                 emailAddress: surveySubmission?.respondentDetails?.emailAddress,
-                dateFilled: surveySubmission?.dateFilled || '-',
+                dateFilled:
+                  surveySubmission?.respondentDetails?.dateFilled ? format(
+                    new Date(surveySubmission?.respondentDetails?.dateFilled), 'dd/MM/yyyy'
+                  )  : '-',
               }}
             />
           </div>
