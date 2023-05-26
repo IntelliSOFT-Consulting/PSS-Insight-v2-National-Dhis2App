@@ -42,25 +42,27 @@ export default function Resend({ Form, form, ...props }) {
             rows={3}
           />
         </Form.Item>
-        <Form.Item
-          label='Enter Expiry Date'
-          name='expiryDateTime'
-          rules={[
-            {
-              required: true,
-              message: 'Please select expiry date',
-            },
-          ]}
-        >
-          <DatePicker
-            size='large'
-            className={classes.input}
-            placeholder='Select expiry date'
-            disabledDate={current =>
-              current && current < moment().subtract(1, 'days')
-            }
-          />
-        </Form.Item>
+        {!props.noExpiry && (
+          <Form.Item
+            label='Enter Expiry Date'
+            name='expiryDateTime'
+            rules={[
+              {
+                required: props.noExpiry ? false : true,
+                message: 'Please select expiry date',
+              },
+            ]}
+          >
+            <DatePicker
+              size='large'
+              className={classes.input}
+              placeholder='Select expiry date'
+              disabledDate={current =>
+                current && current < moment().subtract(1, 'days')
+              }
+            />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );

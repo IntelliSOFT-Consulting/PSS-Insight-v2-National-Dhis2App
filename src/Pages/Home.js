@@ -14,7 +14,7 @@ const useStyles = createUseStyles({
   },
   mainRoutes: {
     display: 'grid !important',
-    gridTemplateColumns: 'repeat(5, 1fr)',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gridGap: '1rem',
     width: '100% !important',
     height: ' 100%',

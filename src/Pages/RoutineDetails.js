@@ -6,6 +6,11 @@ import {
   resendSurveySubmission,
   verifySurveySubmission,
 } from '../api/surveySubmissions';
+import {
+  confirmEntry,
+  getdataEntryDetails,
+  rejectEntry,
+} from '../api/dataEntry';
 import HorizontalTable from '../components/HorizontalTable';
 import { createUseStyles } from 'react-jss';
 import { useParams } from 'react-router-dom';
@@ -62,7 +67,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function Response() {
+export default function RoutineDetails() {
   const [surveySubmission, setSurveySubmission] = useState(null);
   const [newExpiry, setNewExpiry] = useState(null);
   const [selectedIndicators, setSelectedIndicators] = useState([]);
@@ -81,12 +86,13 @@ export default function Response() {
     const fetchSurveySubmission = async () => {
       setLoading(true);
       try {
-        const data = await getSurveySubmission(id);
-        if (data.respondentDetails.status === 'DRAFT') data.responses = [];
+        const data = await getdataEntryDetails(id);
+        if (data.status === 'DRAFT') data.responses = [];
         const populateAnswers = displayDetails(data);
         data.questions = populateAnswers;
         setSurveySubmission(data);
       } catch (error) {
+        console.log(error);
         setError(
           'Something went wrong. Please refresh the page and try again.'
         );
@@ -97,18 +103,10 @@ export default function Response() {
   }, [id]);
 
   const col1 = [
-    { title: 'Survey Name', index: 'surveyName' },
-    {
-      title: 'Survey Description',
-      index: 'surveyDescription',
-    },
-  ];
-
-  const col2 = [
-    { title: 'Respondents Email', index: 'emailAddress' },
+    { title: 'Period', index: 'selectedPeriod' },
     {
       title: 'Date Filled',
-      index: 'dateFilled',
+      index: 'dataEntryDate',
     },
   ];
 
@@ -125,9 +123,9 @@ export default function Response() {
   };
 
   const hideFooter =
-    surveySubmission?.respondentDetails.status === 'DRAFT' ||
-    surveySubmission?.respondentDetails.status === 'VERIFIED' ||
-    surveySubmission?.respondentDetails.status === 'REJECTED';
+    surveySubmission?.status === 'DRAFT' ||
+    surveySubmission?.status === 'VERIFIED' ||
+    surveySubmission?.status === 'REJECTED';
 
   const resendSurvey = async (values = {}) => {
     try {
@@ -156,10 +154,7 @@ export default function Response() {
               'yyyy-MM-dd hh:mm:ss'
             ),
           };
-      const data = await resendSurveySubmission(
-        payload,
-        surveySubmission.respondentDetails.id
-      );
+      const data = await resendSurveySubmission(payload, surveySubmission.id);
 
       setShowResend(false);
       setSuccess('Survey resent successfully!');
@@ -175,22 +170,19 @@ export default function Response() {
 
   const handleConfirm = async () => {
     try {
-      const verify = await verifySurveySubmission(
-        surveySubmission.respondentDetails.id
-      );
+      const verify = await confirmEntry(id);
       if (verify) {
         setSuccess('Survey confirmed successfully!');
       }
     } catch (error) {
+      console.log(error)
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
 
   const handleReject = async () => {
     try {
-      const reject = await rejectSurveySubmission(
-        surveySubmission.respondentDetails.id
-      );
+      const reject = await rejectEntry(id);
       if (reject) {
         setSuccess('Survey rejected successfully!');
       }
@@ -198,8 +190,6 @@ export default function Response() {
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
-
-  console.log('expired', isExpired());
 
   const footer = (
     <div className={classes.cardFooter}>
@@ -260,6 +250,7 @@ export default function Response() {
         Form={Form}
         form={form}
         id={surveySubmission?.respondentDetails?.id}
+        noExpiry={true}
       />
       {error && (
         <Notification
@@ -285,18 +276,10 @@ export default function Response() {
             <HorizontalTable
               headers={col1}
               data={{
-                surveyName: surveySubmission?.respondentDetails?.surveyName,
-                surveyDescription:
-                  surveySubmission?.respondentDetails?.surveyDescription,
-              }}
-            />
-            <HorizontalTable
-              headers={col2}
-              data={{
-                emailAddress: surveySubmission?.respondentDetails?.emailAddress,
-                dateFilled: surveySubmission?.respondentDetails?.dateFilled
+                selectedPeriod: surveySubmission?.selectedPeriod,
+                dataEntryDate: surveySubmission?.dataEntryDate
                   ? format(
-                      new Date(surveySubmission?.respondentDetails?.dateFilled),
+                      new Date(surveySubmission?.dataEntryDate),
                       'dd/MM/yyyy'
                     )
                   : '-',
@@ -304,46 +287,26 @@ export default function Response() {
             />
           </div>
           <div>
-            {isExpired() ? (
-              <div className={classes.expired}>
-                <Title text='Set Expiration Date' />
-                <DatePicker
-                  label='Enter Expiry Date'
-                  name='expirydate'
-                  size='large'
-                  style={{ width: '40%' }}
-                  onChange={value => {
-                    setNewExpiry(value);
-                  }}
-                  value={newExpiry}
-                  required
-                  disabledDate={current =>
-                    current && current < moment().subtract(1, 'days')
-                  }
-                />
-              </div>
-            ) : (
-              surveySubmission?.questions?.map((question, index) => (
-                <div key={index}>
-                  {question.indicators?.length > 0 && (
-                    <Title text={question.categoryName} />
-                  )}
-                  <div>
-                    {question.indicators.map((indicator, index) => (
-                      <ResponseGrid
-                        selectedIndicators={selectedIndicators}
-                        setSelectedIndicators={setSelectedIndicators}
-                        key={index}
-                        indicator={indicator}
-                        referenceSheet={
-                          surveySubmission?.respondentDetails?.referenceSheet
-                        }
-                      />
-                    ))}
-                  </div>
+            {surveySubmission?.questions?.map((question, index) => (
+              <div key={index}>
+                {question.indicators?.length > 0 && (
+                  <Title text={question.categoryName} />
+                )}
+                <div>
+                  {question.indicators.map((indicator, index) => (
+                    <ResponseGrid
+                      selectedIndicators={selectedIndicators}
+                      setSelectedIndicators={setSelectedIndicators}
+                      key={index}
+                      indicator={indicator}
+                      referenceSheet={
+                        surveySubmission?.respondentDetails?.referenceSheet
+                      }
+                    />
+                  ))}
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         </>
       )}

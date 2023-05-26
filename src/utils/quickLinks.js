@@ -4,6 +4,10 @@ export const routes = [
     text: 'Local Master Indicator Template',
   },
   {
+    path: '/indicators/dictionary',
+    text: 'Indicator Dictionary',
+  },
+  {
     path: '/surveys/menu',
     text: 'Surveys',
   },
@@ -18,7 +22,5 @@ export const routes = [
   {
     path: '/configurations',
     text: 'Configurations',
-  }
-  
+  },
 ];
-

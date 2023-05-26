@@ -1,6 +1,3 @@
-import { ca } from 'date-fns/locale';
-import { array } from 'yup';
-
 export const toSentenceCase = str => {
   return str
     ?.toLowerCase()
@@ -155,8 +152,10 @@ export const checkDisable = (categoryId, selected) => {
 };
 
 export const displayDetails = surveyDetails => {
-  const { questions, responses } = surveyDetails;
-  const newQuestions = questions.map(question => {
+  const { questions, responses, indicators } = surveyDetails;
+
+  const mainQuestions = questions || indicators.details;
+  const newQuestions = mainQuestions.map(question => {
     const { indicators } = question;
     const newIndicators = indicators.map(indicator => {
       const { indicatorDataValue } = indicator;
@@ -198,4 +197,15 @@ export const sortSurveys = surveys => {
 
 export const sortByDate = arr => {
   return arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+export const formatFormulaByIndex = (formula, questions) => {
+  const variableRegex = /\{([^}]+)\}/g;
+
+  const replacedFormula = formula?.replace(variableRegex, (match, name) => {
+    const index = questions?.findIndex(q => q.name === name.trim());
+    return index >= 0 ? `{${index.toString()}}` : '0';
+  });
+
+  return replacedFormula;
 };

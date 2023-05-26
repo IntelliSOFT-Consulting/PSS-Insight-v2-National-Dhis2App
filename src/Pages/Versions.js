@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { Table, Popconfirm } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import Empty from '../components/Empty';
-import Loader from '../components/Loader';
+import { Button } from '@dhis2/ui';
 import { toSentenceCase } from '../utils/helpers';
 
 const useStyles = createUseStyles({
@@ -32,6 +32,11 @@ const useStyles = createUseStyles({
   },
   delete: {
     color: '#f44336',
+  },
+  title: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
 
@@ -145,8 +150,17 @@ export default function Versions({ user }) {
     },
   ];
 
+  const title = (
+    <div className={classes.title}>
+      <h3>TEMPLATES</h3>
+      <Link to='/templates/versions/new'>
+        <Button primary>New Version</Button>
+      </Link>
+    </div>
+  );
+
   return (
-    <Card title='TEMPLATES'>
+    <Card title={title}>
       {versions?.length === 0 && !loading ? (
         <Empty />
       ) : (

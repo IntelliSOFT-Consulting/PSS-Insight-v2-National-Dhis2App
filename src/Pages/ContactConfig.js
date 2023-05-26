@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { Form, Input, Button } from 'antd';
 import { createUseStyles } from 'react-jss';
-import { createAbout } from '../api/configurations';
+import { createAbout, aboutUsDetails } from '../api/configurations';
 import Notification from '../components/Notification';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -53,6 +53,7 @@ const useStyles = createUseStyles({
 
 export default function ContactConfig() {
   const [loading, setLoading] = useState(false);
+  const [about, setAbout] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const classes = useStyles();
@@ -68,15 +69,29 @@ export default function ContactConfig() {
     }
   };
 
+  useEffect(() => {
+    const fetchAboutUs = async () => {
+      setLoading(true);
+      try {
+        const data = await aboutUsDetails();
+        if (data) {
+          setAbout(data);
+          form.setFieldsValue(data);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.log(error);
+        setError('Something went wrong, please try again later');
+      }
+      setLoading(false);
+    };
+    fetchAboutUs();
+  }, [success]);
+
+
+
   const footer = (
     <div className={classes.footer}>
-      <Button
-        type='default'
-        form='email-config-form'
-        onClick={() => form.resetFields()}
-      >
-        Cancel
-      </Button>
       <Button
         type='primary'
         htmlType='submit'
