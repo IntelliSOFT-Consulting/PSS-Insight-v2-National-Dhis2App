@@ -8,7 +8,7 @@ import {
 } from '../api/surveySubmissions';
 import HorizontalTable from '../components/HorizontalTable';
 import { createUseStyles } from 'react-jss';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { displayDetails } from '../utils/helpers';
 import ResponseGrid from '../components/ResponsesGrid';
 import Loader from '../components/Loader';
@@ -76,6 +76,7 @@ export default function Response() {
   const [showResend, setShowResend] = useState(false);
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSurveySubmission = async () => {
@@ -172,6 +173,16 @@ export default function Response() {
   const classes = useStyles({
     isExpired: isExpired(),
   });
+
+  useEffect(() => {
+    if (success) {
+      const timeOut = setTimeout(() => {
+        setSuccess(null);
+        navigate('/surveys/menu');
+      }, 1000);
+      return () => clearTimeout(timeOut);
+    }
+  }, [success]);
 
   const handleConfirm = async () => {
     try {
