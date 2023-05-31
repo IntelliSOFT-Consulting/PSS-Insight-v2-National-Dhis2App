@@ -14,3 +14,10 @@ export const unSubscribeToNotifications = async payload => {
   const { data } = await api.put('/notification/unsubscribe', payload);
   return data;
 };
+
+export const getSubscrpitionDetails = async userId => {
+  const { data } = await api.get(`/notification/subscription-details`, {
+    params: { userId },
+  });
+  return data;
+};

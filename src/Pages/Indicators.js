@@ -157,7 +157,7 @@ export default function Indicators() {
         <div className={styles.header}>
           <h2>INDICATOR DICTIONARY</h2>
           <Link to='/indicators/add'>
-            <Button type='primary'>Add new</Button>
+            <Button type='primary'>New Indicator</Button>
           </Link>
         </div>
       }

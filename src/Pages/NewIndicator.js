@@ -13,6 +13,7 @@ import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
 import { formatFormulaByIndex } from '../utils/helpers';
+import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -119,7 +120,6 @@ export default function NewIndicator({ user }) {
     try {
       const data = await getDropdowns();
       if (data) {
-        // setTopics(data.topics?.details);
         setValueTypes(data.valueType?.details);
       }
     } catch (error) {

@@ -7,6 +7,7 @@ import { createUseStyles } from 'react-jss';
 import {
   subScribeToNotifications,
   unSubscribeToNotifications,
+  getSubscrpitionDetails,
 } from '../api/notifications';
 import Notification from '../components/Notification';
 
@@ -85,11 +86,7 @@ const EditableCell = ({
       inputRef.current?.focus();
     }
   }, [isEdited]);
-  const toggleEdit = () => {
-    form.setFieldsValue({
-      [dataIndex]: record[dataIndex],
-    });
-  };
+
   const save = async () => {
     setEditing(null);
     try {
@@ -147,7 +144,7 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-export default function NotificationSettings() {
+export default function NotificationSettings({ user }) {
   const [editing, setEditing] = useState(null);
   const [values, setValues] = useState({
     firstName: '',
@@ -159,6 +156,26 @@ export default function NotificationSettings() {
   const [error, setError] = useState(null);
 
   const classes = useStyles();
+
+  useEffect(() => {
+    const fetchSubscrpitionDetails = async () => {
+      try {
+        const data = await getSubscrpitionDetails(user?.me?.id);
+        if (data?.code > 201) {
+          return setError('Failed to fetch subscription details');
+        }
+        setValues({
+          firstName: data?.firstName,
+          lastName: data?.lastName,
+          email: data?.email,
+          phoneNumber: data?.phoneNumber,
+        });
+      } catch (error) {
+        setError('Failed to fetch subscription details');
+      }
+    };
+    fetchSubscrpitionDetails();
+  }, []);
 
   const defaultColumns = [
     {
@@ -240,7 +257,11 @@ export default function NotificationSettings() {
 
   const handleSubscribe = async () => {
     try {
-      const data = await subScribeToNotifications(values);
+      const payload = {
+        ...values,
+        id: user?.me?.id,
+      };
+      const data = await subScribeToNotifications(payload);
       setSuccess('You have successfully subscribed to notifications');
 
       handleReset();

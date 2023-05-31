@@ -8,7 +8,7 @@ import {
 } from '../api/surveySubmissions';
 import HorizontalTable from '../components/HorizontalTable';
 import { createUseStyles } from 'react-jss';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { displayDetails } from '../utils/helpers';
 import ResponseGrid from '../components/ResponsesGrid';
 import Loader from '../components/Loader';
@@ -18,7 +18,7 @@ import Resend from '../components/Resend';
 import moment from 'moment';
 import { format } from 'date-fns';
 import Title from '../components/Title';
-import { useFormik } from 'formik';
+import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   header: {
@@ -76,7 +76,6 @@ export default function Response() {
   const [showResend, setShowResend] = useState(false);
 
   const { id } = useParams();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSurveySubmission = async () => {
@@ -118,9 +117,9 @@ export default function Response() {
       const date = surveySubmission?.respondentDetails?.expiresAt;
       const now = new Date();
       const expiry = new Date(date);
-      const hasResponded =
-        surveySubmission?.responses?.filter(item => item.response).length > 0;
-      return now > expiry && !hasResponded;
+      return (
+        now > expiry && surveySubmission?.respondentDetails?.status === 'DRAFT'
+      );
     }
     return false;
   };
@@ -166,7 +165,6 @@ export default function Response() {
       setSuccess('Survey resent successfully!');
       form.resetFields();
     } catch (error) {
-      console.log(error);
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
@@ -174,15 +172,7 @@ export default function Response() {
     isExpired: isExpired(),
   });
 
-  useEffect(() => {
-    if (success) {
-      const timeOut = setTimeout(() => {
-        setSuccess(null);
-        navigate('/surveys/menu');
-      }, 1000);
-      return () => clearTimeout(timeOut);
-    }
-  }, [success]);
+  useRedirect('/surveys/menu', 1000, success);
 
   const handleConfirm = async () => {
     try {

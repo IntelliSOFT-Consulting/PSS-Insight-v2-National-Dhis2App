@@ -17,12 +17,13 @@ import SurveyIndicatorStack from '../components/SurveyIndicatorStack';
 import Accordion from '../components/Accordion';
 import Loading from '../components/Loader';
 import { createUseStyles } from 'react-jss';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { format } from 'date-fns';
 import moment from 'moment';
 import { formatSurveyDetails, sortIndicators } from '../utils/helpers';
 import Notification from '../components/Notification';
+import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -61,7 +62,6 @@ export default function NewSurvey({ user }) {
   const [referenceSheet, setReferenceSheet] = useState('');
 
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const isView = window.location.href.includes('view');
 
@@ -122,10 +122,7 @@ export default function NewSurvey({ user }) {
           setSuccess('Survey saved successfully');
           setShowModal(false);
           setError(false);
-          setTimeout(() => {
-            setSuccess(false);
-            navigate('/surveys/menu');
-          }, 1000);
+          formik.resetForm();
         }
       } catch (error) {
         setSending(false);
@@ -134,6 +131,8 @@ export default function NewSurvey({ user }) {
       }
     },
   });
+
+  useRedirect('/surveys/menu', 1000, success);
 
   const getIndicators = async () => {
     try {
@@ -163,17 +162,6 @@ export default function NewSurvey({ user }) {
     getIndicators();
     if (id) loadSurvey();
   }, [id]);
-
-  useEffect(() => {
-    if (success) {
-      formik.resetForm();
-      const successTimeout = setTimeout(() => {
-        setSuccess(false);
-      }, 3000);
-
-      return () => clearTimeout(successTimeout);
-    }
-  }, [success]);
 
   const footer = (
     <div className={classes.cardFooter}>

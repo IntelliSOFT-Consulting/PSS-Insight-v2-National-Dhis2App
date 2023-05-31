@@ -21,7 +21,7 @@ const useStyles = createUseStyles({
   description: {
     fontSize: 14,
     fontWeight: 300,
-    paddingRight: '6rem !important',
+    paddingRight: '6.5rem !important',
     lineHeight: 1.5,
   },
     date: {
