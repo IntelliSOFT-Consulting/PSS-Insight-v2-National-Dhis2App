@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
-import { Field, Input, TextArea, AlertBar } from '@dhis2/ui';
+import { Field, Input, TextArea } from '@dhis2/ui';
 import { Button } from 'antd';
 import {
   saveTemplate,
@@ -16,12 +16,13 @@ import IndicatorStack from '../components/IndicatorStack';
 import Accordion from '../components/Accordion';
 import Loading from '../components/Loader';
 import { createUseStyles } from 'react-jss';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   formatVersionDetails,
   groupIndicatorsByVersion,
 } from '../utils/helpers';
 import Notification from '../components/Notification';
+import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -48,7 +49,6 @@ export default function NewVersion({ user }) {
   const [selectedIndicators, setSelectedIndicators] = useState([]);
 
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const isView = window.location.href.includes('view');
 
@@ -89,11 +89,7 @@ export default function NewVersion({ user }) {
           setError(false);
 
           window.scrollTo(0, 0);
-          setTimeout(() => {
-            setSuccess(false);
-            formik.resetForm();
-            navigate('/templates/versions');
-          }, 1000);
+          formik.resetForm();
         }
       } catch (error) {
         setError('Something went wrong while saving the template');
@@ -101,6 +97,8 @@ export default function NewVersion({ user }) {
       }
     },
   });
+
+  useRedirect('/templates/versions', 1000, success);
 
   const getIndicatorDetails = async () => {
     try {

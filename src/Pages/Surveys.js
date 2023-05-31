@@ -5,15 +5,12 @@ import { createUseStyles } from 'react-jss';
 import MiniCard from '../components/MiniCard';
 import { format } from 'date-fns';
 import Table from '../components/Table';
-import {
-  getSurveySubmissions,
-  listRespondents,
-  listSurveys,
-} from '../api/surveySubmissions';
+import { getSurveySubmissions, listSurveys } from '../api/surveySubmissions';
 import { Link } from 'react-router-dom';
 import Loader from '../components/Loader';
 import Empty from '../components/Empty';
 import { sortSurveys } from '../utils/helpers';
+import { Tooltip } from 'antd';
 
 const useStyles = createUseStyles({
   title: {
@@ -27,6 +24,9 @@ const useStyles = createUseStyles({
     color: '#60B0FF !important',
     cursor: 'pointer',
     textDecoration: 'none',
+  },
+  tab: {
+    width: '100%',
   },
 });
 
@@ -43,12 +43,40 @@ export default function Surveys({ user }) {
   const [error, setError] = useState(null);
 
   const states = [
-    'All',
-    'Draft',
-    'Pending',
-    'Verified',
-    'Rejected',
-    'Expired',
+    {
+      name: 'All',
+      description:
+        'Displays all surveys that have been created and sent regardless of whether or not they have been responded.',
+      query: 'ALL',
+    },
+    {
+      name: 'Draft',
+      description:
+        'These are the submissions that have been created but have not been published.',
+      query: 'DRAFT',
+    },
+    {
+      name: 'Pending',
+      description:
+        'This tab displays surveys that have been sent to non-routine respondents and are still awaiting to be responded to.',
+      query: 'PENDING',
+    },
+    {
+      name: 'Confirmed',
+      description:
+        'This tab displays the surveys that have been responded to by the non-routine respondents and have been verified/approved by the national admin.',
+      query: 'VERIFIED',
+    },
+    {
+      name: 'Rejected',
+      description: `This tab displays the surveys that have been responded to by the non-routine respondents and have not been approved by the national admin due to various reasons such as insufficient information. In this case, the national admin may resend the survey back to the non-routine respondent.`,
+      query: 'REJECTED',
+    },
+    {
+      name: 'Expired',
+      description: `This tab displays the surveys sent by the national admin to the non-routine respondents and the link was invalid since the respondent did not access the survey in good time. It also displays whether or not the respondent has requested a new link to the survey.`,
+      query: 'EXPIRED',
+    },
   ];
 
   const limit = 10;
@@ -70,7 +98,10 @@ export default function Surveys({ user }) {
     try {
       setLoading(true);
       const data = await listSurveys(user?.me?.id);
-      setSurveys(data?.details);
+      const filteredSurveys = selected === 'Draft' ? data?.details : data?.details?.filter(
+        survey => survey?.respondentList?.length > 0
+      );
+      setSurveys(filteredSurveys);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -83,12 +114,12 @@ export default function Surveys({ user }) {
   }, []);
 
   const handleChanged = async selected => {
-    const data = await listSurveys(
-      user?.me?.id,
-      selected?.toUpperCase() || 'ALL'
+    const data = await listSurveys(user?.me?.id, selected?.query || 'ALL');
+    const filteredSurveys = selected.name === 'Draft' ? data?.details : data?.details?.filter(
+      survey => survey?.respondentList?.length > 0
     );
-    setSurveys(data?.details);
-    setSelected(selected);
+    setSurveys(filteredSurveys);
+    setSelected(selected.name);
   };
 
   const title = (
@@ -190,11 +221,13 @@ export default function Surveys({ user }) {
       <TabBar fixed>
         {states.map(state => (
           <Tab
-            key={state}
+            key={state.name}
             onClick={() => handleChanged(state)}
-            selected={state === selected}
+            selected={state.name === selected}
           >
-            {state}
+            <Tooltip title={state.description} key={state.name}>
+              <div className={classes.tab}>{state.name}</div>
+            </Tooltip>
           </Tab>
         ))}
       </TabBar>

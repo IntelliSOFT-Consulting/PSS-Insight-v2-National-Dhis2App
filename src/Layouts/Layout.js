@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import { DataQuery } from '@dhis2/app-runtime';
 import Loader from '../components/Loader';
 import templateRoutes from '../routes/templateRoutes';
+import indicatorRoutes from '../routes/indicatorRoutes';
 import surveyRoutes from '../routes/surveyRoutes';
 import notificationRoutes from '../routes/notificationRoutes';
 import configRoutes from '../routes/configRoutes';
@@ -45,6 +46,8 @@ const useStyles = createUseStyles({
   },
 });
 
+const createLink = (label, path) => <Link to={path}>{label}</Link>;
+
 export default function MainLayout({ layout, user }) {
   const classes = useStyles();
   const query = {
@@ -53,9 +56,11 @@ export default function MainLayout({ layout, user }) {
     },
   };
 
+  const baseUrl = window.location.origin;
+
   const sideLinks = [
     {
-      label: <Link to='/'>Dashboard</Link>,
+      label: <a href={baseUrl}>Dashboard</a>,
       key: 'dashboard',
     },
     {
@@ -73,16 +78,30 @@ export default function MainLayout({ layout, user }) {
       ],
     },
     {
+      label: 'Indicator Dictionary',
+      key: 'indicators',
+      children: [
+        {
+          label: createLink('Dictionary', '/indicators/dictionary'),
+          key: 'dictionary',
+        },
+        {
+          label: createLink('New Indicator', '/indicators/add'),
+          key: 'newIndicator',
+        },
+      ],
+    },
+    {
       label: 'Surveys',
       key: 'surveys',
       children: [
         {
-          key: 'create',
-          label: <Link to='/surveys/create'>Create Survey</Link>,
-        },
-        {
           key: 'menu',
           label: <Link to='/surveys/menu'>Surveys</Link>,
+        },
+        {
+          key: 'create',
+          label: <Link to='/surveys/create'>Create Survey</Link>,
         },
       ],
     },
@@ -116,6 +135,7 @@ export default function MainLayout({ layout, user }) {
     ...notificationRoutes,
     ...configRoutes,
     ...routineRoutes,
+    ...indicatorRoutes,
   ];
 
   return (

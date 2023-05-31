@@ -18,11 +18,15 @@ export const getSurveySubmission = async id => {
   return data;
 };
 
-export const verifySurveySubmission = async (id, response = '') => {
-  const { data } = await api.post('/survey/verify', {
-    id,
-    response,
-  });
+export const verifySurveySubmission = async respondentId => {
+  const { data } = await api.put(
+    `/survey-respondents/${respondentId}/verify-survey`
+  );
+  return data;
+};
+
+export const rejectSurveySubmission = async respondentId => {
+  const { data } = await api.put(`/survey-respondents/${respondentId}/reject-survey`);
   return data;
 };
 
