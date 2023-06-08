@@ -13,7 +13,6 @@ import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
 import { formatFormulaByIndex } from '../utils/helpers';
-import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -109,6 +108,9 @@ export default function NewIndicator({ user }) {
         form.setFieldsValue({
           ...data,
         });
+        if (data?.systemComponent) {
+          setTopics(data.systemComponent);
+        }
         setQuestions(data.assessmentQuestions);
       }
     } catch (error) {
@@ -217,7 +219,7 @@ export default function NewIndicator({ user }) {
       const numerator = values.numerator || '';
       const denominator = values.denominator || '';
 
-      const payload = {
+      let payload = {
         ...values,
         assessmentQuestions: questions,
         createdBy: {
@@ -227,19 +229,47 @@ export default function NewIndicator({ user }) {
           username: user?.me?.username,
           displayName: user?.me?.name,
         },
+        formula: {
+          format: values.format,
+        },
       };
 
       [numerator, denominator].forEach((formula, index) => {
         if (formula) {
           const formattedFormula = formatFormulaByIndex(formula, questions);
           if (index === 0) {
-            payload.numerator = formattedFormula;
+            payload.formula = {
+              ...payload.formula,
+              numerator: formattedFormula,
+            };
           } else {
-            payload.denominator = formattedFormula;
+            payload.formula = {
+              ...payload.formula,
+              denominator: formattedFormula,
+            };
           }
         }
       });
+      delete payload.numerator;
+      delete payload.denominator;
+      delete payload.format;
+
+      const saveReference = id
+        ? updateReference(id, payload)
+        : createReference(payload);
+      if (saveReference) {
+        setSuccess(() =>
+          id
+            ? 'Indicator updated successfully!'
+            : 'Indicator created successfully!'
+        );
+        setTimeout(() => {
+          setSuccess(false);
+          navigate('/indicators/dictionary');
+        }, 2000);
+      }
     } catch (error) {
+      console.log(error);
       setError('Something went wrong!');
     }
   };
@@ -251,7 +281,7 @@ export default function NewIndicator({ user }) {
 
   const typeOfFormulaOptions = [
     { label: 'Percentage', value: 'Percentage' },
-    { label: 'Ratio', value: 'Ratio' },
+    { label: 'Number', value: 'Number' },
   ];
 
   const components = {
@@ -323,7 +353,7 @@ export default function NewIndicator({ user }) {
             <Input placeholder='Name' size='large' />
           </Form.Item>
           <Form.Item
-            name='topic'
+            name='systemComponent'
             label='System Component/Outcome/Attribute'
             rules={[
               {
@@ -336,13 +366,11 @@ export default function NewIndicator({ user }) {
               removeIcon
               placeholder='System Component/Outcome/Attribute'
               size='large'
-              onChange={
-                value => setTopics(value)
-              }
-              options={Object.keys(components).map(topic => {
+              onChange={value => setTopics(value)}
+              options={Object.keys(components).map(component => {
                 return {
-                  value: topic,
-                  label: topic,
+                  value: component,
+                  label: component,
                 };
               })}
             ></Select>
@@ -361,7 +389,7 @@ export default function NewIndicator({ user }) {
             <Input placeholder='PSS Insight Indicator #' size='large' />
           </Form.Item>
 
-             <Form.Item
+          <Form.Item
             name='dimension'
             label='System Element/Dimension'
             rules={[
@@ -375,12 +403,10 @@ export default function NewIndicator({ user }) {
               removeIcon
               placeholder='System Element/Dimension'
               size='large'
-              options={
-                components[topics] &&
-                components[topics].map(topic => {
+              options={components[topics]?.map(element => {
                 return {
-                  value: topic,
-                  label: topic,
+                  value: element,
+                  label: element,
                 };
               })}
             ></Select>
@@ -467,16 +493,7 @@ export default function NewIndicator({ user }) {
           />
         </div>
         <div className={classes.basicDetails}>
-          <Form.Item
-            name='purposeAndIssues'
-            label='Purpose and Issues'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the purpose and issues!',
-              },
-            ]}
-          >
+          <Form.Item name='purposeAndIssues' label='Purpose and Issues'>
             <Input.TextArea
               placeholder='Purpose and Issues'
               size='large'
@@ -484,16 +501,7 @@ export default function NewIndicator({ user }) {
             />
           </Form.Item>
 
-          <Form.Item
-            name='preferredDataSources'
-            label='Preferred Data Sources'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the preferred data sources!',
-              },
-            ]}
-          >
+          <Form.Item name='preferredDataSources' label='Preferred Data Sources'>
             <Input.TextArea
               placeholder='Preferred Data Sources'
               size='large'
@@ -504,12 +512,6 @@ export default function NewIndicator({ user }) {
           <Form.Item
             name='proposedScoring'
             label='Proposed Scoring or Benchmarking'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the proposed scoring or benchmarking!',
-              },
-            ]}
             className={classes.definition}
           >
             <Input.TextArea
@@ -546,16 +548,7 @@ export default function NewIndicator({ user }) {
           >
             <Input placeholder='Indicator Reference Number(s)' size='large' />
           </Form.Item>
-          <Form.Item
-            name='indicatorSource'
-            label='Indicator Source(s)'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the indicator source(s)!',
-              },
-            ]}
-          >
+          <Form.Item name='indicatorSource' label='Indicator Source(s)'>
             <Input.TextArea
               placeholder='Indicator Source(s)'
               size='large'
@@ -590,7 +583,7 @@ export default function NewIndicator({ user }) {
               />
             </Form.Item>
             <Form.Item
-              name='typeOfFormula'
+              name='format'
               label='Type of Formula'
               rules={[
                 {

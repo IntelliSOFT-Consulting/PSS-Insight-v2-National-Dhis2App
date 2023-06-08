@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import {
-  getSurveySubmission,
-  rejectSurveySubmission,
-  resendSurveySubmission,
-  verifySurveySubmission,
-} from '../api/surveySubmissions';
-import {
   confirmEntry,
   getdataEntryDetails,
   rejectEntry,
+  resendDataEntry,
 } from '../api/dataEntry';
 import HorizontalTable from '../components/HorizontalTable';
 import { createUseStyles } from 'react-jss';
@@ -18,12 +13,11 @@ import { displayDetails } from '../utils/helpers';
 import ResponseGrid from '../components/ResponsesGrid';
 import Loader from '../components/Loader';
 import Notification from '../components/Notification';
-import { Button, DatePicker, Form } from 'antd';
+import { Button, Form } from 'antd';
 import Resend from '../components/Resend';
-import moment from 'moment';
+import useRedirect from '../hooks/redirect';
 import { format } from 'date-fns';
 import Title from '../components/Title';
-import { useFormik } from 'formik';
 
 const useStyles = createUseStyles({
   header: {
@@ -129,32 +123,12 @@ export default function RoutineDetails() {
 
   const resendSurvey = async (values = {}) => {
     try {
-      values.expiryDateTime = new Date(values.expiryDateTime);
-
-      const ids = surveySubmission.questions
-        .map(category => {
-          return category.indicators.map(indicator => indicator.categoryId);
-        })
-        .flat();
-
-      const payload = isExpired()
-        ? {
-            indicators: ids,
-            expiryDateTime: format(
-              new Date(new Date(newExpiry).setHours(23, 59, 59, 999)),
-              'yyyy-MM-dd hh:mm:ss'
-            ),
-          }
-        : {
-            indicators: selectedIndicators,
-            comments: values.comments,
-            surveyId: id,
-            expiryDateTime: format(
-              new Date(values.expiryDateTime.setHours(23, 59, 59, 999)),
-              'yyyy-MM-dd hh:mm:ss'
-            ),
-          };
-      const data = await resendSurveySubmission(payload, surveySubmission.id);
+      const payload = {
+        indicators: selectedIndicators,
+        comments: values.comments,
+        surveyId: id,
+      };
+      const data = await resendDataEntry(payload, surveySubmission.id);
 
       setShowResend(false);
       setSuccess('Survey resent successfully!');
@@ -175,7 +149,7 @@ export default function RoutineDetails() {
         setSuccess('Survey confirmed successfully!');
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
@@ -190,6 +164,8 @@ export default function RoutineDetails() {
       setError('Something went wrong. Please refresh the page and try again.');
     }
   };
+
+  useRedirect('/routine', 1000, success);
 
   const footer = (
     <div className={classes.cardFooter}>

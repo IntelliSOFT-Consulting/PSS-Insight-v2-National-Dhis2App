@@ -27,3 +27,8 @@ export const rejectEntry = async dataEntryId => {
   const { data } = await api.put(`/data-entry/${dataEntryId}/reject`);
   return data;
 };
+
+export const resendDataEntry = async (payload, dataEntryId) => {
+  const { data } = await api.post(`/data-entry/resend/${dataEntryId}`, payload);
+  return data;
+}
