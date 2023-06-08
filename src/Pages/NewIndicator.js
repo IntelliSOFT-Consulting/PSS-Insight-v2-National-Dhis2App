@@ -511,14 +511,10 @@ export default function NewIndicator({ user }) {
 
           <Form.Item
             name='proposedScoring'
-            label='Proposed Scoring or Benchmarking'
+            label='Targets'
             className={classes.definition}
           >
-            <Input.TextArea
-              placeholder='Proposed Scoring or Benchmarking'
-              size='large'
-              rows={5}
-            />
+            <Input.TextArea placeholder='Targets' size='large' rows={5} />
           </Form.Item>
           <Form.Item
             name='expectedFrequencyDataDissemination'
