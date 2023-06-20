@@ -299,7 +299,6 @@ export default function NotificationSettings({ user }) {
       const data = await subScribeToNotifications(payload);
       setSuccess('You have successfully subscribed to notifications');
 
-      handleReset();
       setTimeout(() => {
         setSuccess(null);
       }, 3000);
@@ -331,16 +330,7 @@ export default function NotificationSettings({ user }) {
       >
         Unsubscribe
       </Button>
-      <Button
-        className={classes.buttonDisabled}
-        type='disabled'
-        onClick={() => {
-          setEditing(null);
-          handleReset();
-        }}
-      >
-        Cancel
-      </Button>
+
       <Button
         className={classes.buttonSuccess}
         type='success'
