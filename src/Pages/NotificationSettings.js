@@ -53,8 +53,17 @@ const useStyles = createUseStyles({
 });
 
 const EditableContext = React.createContext(null);
+const ValueContext = React.createContext(null);
 const EditableRow = ({ index, ...props }) => {
   const [form] = Form.useForm();
+  const values = useContext(ValueContext);
+
+  useEffect(() => {
+    form.setFieldsValue({
+      ...values,
+    });
+  }, [values]);
+
   return (
     <Form form={form} component={false}>
       <EditableContext.Provider value={form}>
@@ -73,6 +82,7 @@ const EditableCell = ({
   handleSave,
   isEdited,
   setEditing,
+  initialValues,
   ...restProps
 }) => {
   const inputRef = useRef(null);
@@ -80,17 +90,19 @@ const EditableCell = ({
 
   useEffect(() => {
     if (isEdited === record?.key && inputRef.current) {
+      inputRef.current.value = record?.value;
       form.setFieldsValue({
-        [record?.key]: record?.value,
+        [inputRef.current.name]: record?.value,
       });
       inputRef.current?.focus();
     }
   }, [isEdited]);
 
   const save = async () => {
-    setEditing(null);
     try {
       const values = await form.validateFields();
+
+      setEditing(null);
 
       handleSave({
         ...record,
@@ -113,6 +125,26 @@ const EditableCell = ({
     },
   ];
 
+  const validaitionProps = name => {
+    switch (name) {
+      case 'email':
+        return {
+          rules: emailValidation,
+        };
+      case 'phoneNumber':
+        return {};
+      default:
+        return {
+          rules: [
+            {
+              required: true,
+              message: `${record?.name?.replace(/:/g, '')} is required`,
+            },
+          ],
+        };
+    }
+  };
+
   if (editable) {
     childNode =
       isEdited === record?.key ? (
@@ -120,14 +152,15 @@ const EditableCell = ({
           style={{
             margin: 0,
           }}
-          name={dataIndex}
-          rules={
-            record?.key === 'email'
-              ? emailValidation
-              : [{ required: true, message: `${title} is required` }]
-          }
+          name={record?.key}
+          {...validaitionProps(record?.key)}
         >
-          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+          <Input
+            value={record?.value}
+            ref={inputRef}
+            onPressEnter={save}
+            onBlur={save}
+          />
         </Form.Item>
       ) : (
         <div
@@ -164,11 +197,12 @@ export default function NotificationSettings({ user }) {
         if (data?.code > 201) {
           return setError('Failed to fetch subscription details');
         }
+
         setValues({
-          firstName: data?.firstName,
-          lastName: data?.lastName,
-          email: data?.email,
-          phoneNumber: data?.phoneNumber,
+          firstName: data?.details?.firstName,
+          lastName: data?.details?.lastName,
+          email: data?.details?.email,
+          phoneNumber: data?.details?.phoneNumber,
         });
       } catch (error) {
         setError('Failed to fetch subscription details');
@@ -219,7 +253,7 @@ export default function NotificationSettings({ user }) {
   const handleSave = row => {
     setValues({
       ...values,
-      [row?.key]: row.value,
+      [row?.key]: row[row?.key],
     });
   };
   const components = {
@@ -242,6 +276,7 @@ export default function NotificationSettings({ user }) {
         dataIndex: col.dataIndex,
         title: col.title,
         handleSave,
+        initialValues: values,
       }),
     };
   });
@@ -357,26 +392,28 @@ export default function NotificationSettings({ user }) {
         />
       )}
       <div className={classes.tableGrid}>
-        <Table
-          showHeader={false}
-          columns={columns}
-          dataSource={data1}
-          pagination={false}
-          components={components}
-          bordered={true}
-          rowClassName={() => 'editable-row'}
-          size='small'
-        />
-        <Table
-          showHeader={false}
-          columns={columns}
-          components={components}
-          dataSource={data2}
-          pagination={false}
-          bordered={true}
-          rowClassName={() => 'editable-row'}
-          size='small'
-        />
+        <ValueContext.Provider value={values}>
+          <Table
+            showHeader={false}
+            columns={columns}
+            dataSource={data1}
+            pagination={false}
+            components={components}
+            bordered={true}
+            rowClassName={() => 'editable-row'}
+            size='small'
+          />
+          <Table
+            showHeader={false}
+            columns={columns}
+            components={components}
+            dataSource={data2}
+            pagination={false}
+            bordered={true}
+            rowClassName={() => 'editable-row'}
+            size='small'
+          />
+        </ValueContext.Provider>
       </div>
     </Card>
   );

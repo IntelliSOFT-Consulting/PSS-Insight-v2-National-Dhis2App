@@ -60,7 +60,6 @@ const useStyles = createUseStyles({
   },
 });
 
-
 export default function IndicatorStack({
   indicator,
   disabled,
@@ -131,17 +130,7 @@ export default function IndicatorStack({
       name: (
         <div className={classes.tableFlex}>
           <span>{indicator.indicatorName || ''}</span>
-          {!isView && (
-            <PencilSquareIcon
-              className={classes.edit}
-              onClick={() =>
-                editRow({
-                  categoryId: indicator?.categoryId,
-                  indicatorName: indicator?.indicatorName,
-                })
-              }
-            />
-          )}
+
           <ExclamationCircleIcon
             className={classes.info}
             onClick={() => setInfoModal(indicator)}
@@ -152,13 +141,32 @@ export default function IndicatorStack({
       render: row => (
         <div className={classes.tableFlex}>
           <span>{row.name}</span>
+        </div>
+      ),
+    },
+    {
+      name: !isView && (
+        <PencilSquareIcon
+          className={classes.edit}
+          onClick={() =>
+            editRow({
+              categoryId: indicator?.categoryId,
+              indicatorName: indicator?.indicatorName,
+            })
+          }
+        />
+      ),
+      key: 'edit',
+      width: '2rem',
+      render: row => (
+        <>
           {!isView && (
             <PencilSquareIcon
               className={classes.edit}
               onClick={() => editRow(row)}
             />
           )}
-        </div>
+        </>
       ),
     },
   ];
