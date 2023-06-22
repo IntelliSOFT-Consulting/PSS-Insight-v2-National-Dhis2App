@@ -1,24 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { createUseStyles } from "react-jss";
-import Card from "../components/Card";
-import { getNotifications } from "../api/notifications";
-import NotificationItem from "../components/NotificationItem";
-import Loader from "../components/Loader";
-import Notification from "../components/Notification";
-import { sortByDate } from "../utils/helpers";
-import { Pagination } from "antd";
+import React, { useEffect, useState } from 'react';
+import { createUseStyles } from 'react-jss';
+import Card from '../components/Card';
+import { getNotifications, getSubscrpitionDetails } from '../api/notifications';
+import NotificationItem from '../components/NotificationItem';
+import Loader from '../components/Loader';
+import Notification from '../components/Notification';
+import { sortByDate } from '../utils/helpers';
+import { Pagination } from 'antd';
 
 const useStyles = createUseStyles({
   notification: {
     padding: 16,
   },
   Pagination: {
-    display: "flex",
-    justifyContent: "flex-end",
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
 });
 
-export default function Notifications() {
+export default function Notifications({ user }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -41,14 +41,17 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const data = await getNotifications({
-        email: "dnjau@intellisoftkenya.com",
-      });
-      const sorted = sortByDate(data?.details);
-      setNotifications(sorted);
-      setLoading(false);
+      const userData = await getSubscrpitionDetails(user?.me?.id);
+      if (userData) {
+        const data = await getNotifications({
+          email: userData?.details?.email,
+        });
+        const sorted = sortByDate(data?.details);
+        setNotifications(sorted);
+        setLoading(false);
+      }
     } catch (error) {
-      setError("Error fetching notifications");
+      setError('Error fetching notifications');
       setLoading(false);
     }
   };
@@ -58,10 +61,10 @@ export default function Notifications() {
   }, []);
 
   return (
-    <Card title="NOTIFICATIONS">
+    <Card title='NOTIFICATIONS'>
       {error && (
         <Notification
-          status="error"
+          status='error'
           message={error}
           onClose={() => setError(null)}
         />
