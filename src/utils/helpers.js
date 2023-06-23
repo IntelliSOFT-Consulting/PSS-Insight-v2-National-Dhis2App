@@ -63,8 +63,8 @@ export const groupIndicatorsByVersion = indicators => {
         return b.version - a.version;
       }
 
-      const nameA = a.categoryName.toUpperCase();
-      const nameB = b.categoryName.toUpperCase();
+      const nameA = a.categoryName?.toUpperCase();
+      const nameB = b.categoryName?.toUpperCase();
       if (nameA < nameB) {
         return -1;
       }
@@ -77,8 +77,8 @@ export const groupIndicatorsByVersion = indicators => {
     const sortedIndicatorDataValue = sortedIndicators.map(indicator => {
       const { indicatorDataValue } = indicator;
       const sortedIndicatorValue = indicatorDataValue.sort((a, b) => {
-        const codeA = a.code.toUpperCase();
-        const codeB = b.code.toUpperCase();
+        const codeA = a.code?.toUpperCase();
+        const codeB = b.code?.toUpperCase();
         if (codeA < codeB) {
           return -1;
         }
