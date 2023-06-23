@@ -9,11 +9,11 @@ export const toSentenceCase = str => {
 export const sortIndicators = indicators => {
   const sorted = indicators.map(category => {
     const sortedIndicators = category.indicators.sort((a, b) =>
-      a.categoryName.localeCompare(b.categoryName)
+      a.categoryName?.localeCompare(b.categoryName)
     );
     const sortedDataValues = sortedIndicators.map(indicator => {
       const sortedDataValues = indicator.indicatorDataValue.sort((a, b) =>
-        a.code.localeCompare(b.code)
+        a.code?.localeCompare(b.code)
       );
       return { ...indicator, indicatorDataValue: sortedDataValues };
     });
