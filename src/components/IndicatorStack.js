@@ -37,16 +37,14 @@ const useStyles = createUseStyles({
     width: '100%',
   },
   edit: {
-    position: 'absolute',
-    right: '2rem',
+
     cursor: 'pointer',
     width: '1rem',
     height: '1rem',
     color: '#0067B9',
   },
   info: {
-    position: 'absolute',
-    right: '0',
+
     cursor: 'pointer',
     width: '1.5rem',
     height: '1.5rem',
@@ -79,6 +77,7 @@ export default function IndicatorStack({
   const [editingKey, setEditingKey] = useState('');
 
   const editRow = record => {
+    console.log("Record: ",record)
     setEditingKey(record.categoryId || record.id);
     setEditedDescription(record.indicatorName || record.name);
   };
@@ -130,11 +129,6 @@ export default function IndicatorStack({
       name: (
         <div className={classes.tableFlex}>
           <span>{indicator.indicatorName || ''}</span>
-
-          <ExclamationCircleIcon
-            className={classes.info}
-            onClick={() => setInfoModal(indicator)}
-          />
         </div>
       ),
       key: 'name',
@@ -145,7 +139,7 @@ export default function IndicatorStack({
       ),
     },
     {
-      name: !isView && (
+      name: (
         <PencilSquareIcon
           className={classes.edit}
           onClick={() =>
@@ -158,15 +152,33 @@ export default function IndicatorStack({
       ),
       key: 'edit',
       width: '2rem',
-      render: row => (
+      render: (row) => (
         <>
-          {!isView && (
+          {(
             <PencilSquareIcon
               className={classes.edit}
               onClick={() => editRow(row)}
             />
           )}
         </>
+      ),
+    },
+    {
+      name: (
+        <div className={classes.tableFlex}>
+          <span>Benchmark</span>
+          <ExclamationCircleIcon
+            className={classes.info}
+            onClick={() => setInfoModal(indicator)}
+          />
+        </div>
+      ),
+      width: '12rem',
+      key: 'internationalBenchmark',
+      render: row => (
+        <div className={classes.tableFlex}>
+          <Input />
+        </div>
       ),
     },
   ];
