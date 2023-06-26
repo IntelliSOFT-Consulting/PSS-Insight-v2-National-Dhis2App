@@ -11,7 +11,9 @@ export const subScribeToNotifications = async payload => {
 };
 
 export const unSubscribeToNotifications = async payload => {
-  const { data } = await api.put('/notification/unsubscribe', payload);
+  const { data } = await api.put('/notification/unsubscribe?', {
+    params: { email: payload.email },
+  });
   return data;
 };
 
