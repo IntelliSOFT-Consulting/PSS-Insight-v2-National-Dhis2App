@@ -23,3 +23,11 @@ export const getSubscrpitionDetails = async userId => {
   });
   return data;
 };
+
+export const updateSubscriptionDetails = async payload => {
+  const { data } = await api.put(
+    `/api/v1/notification/update-subscription`,
+    payload
+  );
+  return data;
+};

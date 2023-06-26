@@ -8,6 +8,7 @@ import {
   subScribeToNotifications,
   unSubscribeToNotifications,
   getSubscrpitionDetails,
+  updateSubscriptionDetails,
 } from '../api/notifications';
 import Notification from '../components/Notification';
 
@@ -203,6 +204,7 @@ export default function NotificationSettings({ user }) {
           lastName: data?.details?.lastName,
           email: data?.details?.email,
           phoneNumber: data?.details?.phoneNumber,
+          id: data?.details?.id,
         });
       } catch (error) {
         setError('Failed to fetch subscription details');
@@ -292,12 +294,17 @@ export default function NotificationSettings({ user }) {
 
   const handleSubscribe = async () => {
     try {
-      const payload = {
-        ...values,
-        id: user?.me?.id,
-      };
-      const data = await subScribeToNotifications(payload);
-      setSuccess('You have successfully subscribed to notifications');
+      if (values.id) {
+        await updateSubscriptionDetails(values);
+        setSuccess('Subscription details updated successfully');
+      } else {
+        const payload = {
+          ...values,
+          id: user?.me?.id,
+        };
+        const data = await subScribeToNotifications(payload);
+        setSuccess('You have successfully subscribed to notifications');
+      }
 
       setTimeout(() => {
         setSuccess(null);
