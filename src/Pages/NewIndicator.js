@@ -602,11 +602,11 @@ export default function NewIndicator({ user }) {
 
           <Form.Item
             name='benchmark'
-            label='National Benchmark'
+            label='National Target'
             className={classes.definition}
           >
             <Input.TextArea
-              placeholder='National Benchmark'
+              placeholder='National Target'
               size='large'
               rows={5}
             />
