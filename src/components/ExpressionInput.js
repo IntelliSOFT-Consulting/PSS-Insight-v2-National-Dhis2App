@@ -26,7 +26,7 @@ const useStyles = createUseStyles({
   },
   dropdown: {
     position: 'absolute',
-    top: '75px',
+    top: '40px',
     left: 0,
     zIndex: 1,
     minWidth: '100%',
@@ -65,7 +65,7 @@ const useStyles = createUseStyles({
   },
 });
 
-const InputWithFormula = ({
+const ExpressionInput = ({
   Form,
   form,
   Input,
@@ -124,7 +124,7 @@ const InputWithFormula = ({
         tooltip="To add a question to your formula, just type the opening curly brace symbol '{' and choose from the options that appear. This will allow you to easily incorporate previously added questions into your formula."
         rules={[
           {
-            required:true,
+            required,
             message: `${label} is required.`,
           },
           {
@@ -150,20 +150,52 @@ const InputWithFormula = ({
                     'Please check for any unclosed brackets.'
                   );
                 }
-                 const questionMatch = value.match(/{[\w\s]+}/g);
+
+                // allow if(,isNull(, isNotNull(, AND, NOT, OR using regex
+                const allowedMethods =
+                  /if\(|isNull\(|isNotNull\(|AND|NOT|OR|==|<|>|>=|<=|!=/g;
                 if (
-                  !/^(?:\{[\w\s]+\}|[\d+\-*/.()])+$/.test(value) && !questionMatch
+                  !allowedMethods.test(value) &&
+                  !/^(?:\{[\w\s]+\}|[\d+\-*/.()])+$/.test(value)
                 ) {
-                  return Promise.reject('Invalid character.');
+                  const methodMatch = value.match(/[a-zA-Z]+/g);
+                  if (methodMatch) {
+                    const methodList = methodMatch.filter(
+                      method => !allowedMethods.test(method)
+                    );
+                    const methods = [
+                      'if',
+                      'isNull',
+                      'isNotNull',
+                      'AND',
+                      'NOT',
+                      'OR',
+                      '==',
+                      '<',
+                      '>',
+                      '>=',
+                      '<=',
+                      '!=',
+                    ];
+
+                    if (methodList.length > 0) {
+                      return Promise.reject(
+                        `Please use the following method(s) in your formula: ${methods.join(
+                          '(), '
+                        )}.`
+                      );
+                    }
+                  }
                 }
-                const operatorDecimalTest = /[-+*/.]/;
+
+                const operatorDecimalTest = /[-+*/.%>=<!]/;
                 if (operatorDecimalTest.test(value.slice(-1))) {
                   setShowDropdown(false);
                   return Promise.reject(
                     'Formula cannot end with an operator or decimal.'
                   );
                 }
-               
+                const questionMatch = value.match(/{[\w\s]+}/g);
                 if (questionMatch) {
                   const questionList = questionMatch.map(question =>
                     question.slice(1, -1)
@@ -212,4 +244,4 @@ const InputWithFormula = ({
   );
 };
 
-export default InputWithFormula;
+export default ExpressionInput;

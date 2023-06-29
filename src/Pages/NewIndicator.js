@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CardItem from '../components/Card';
 import { createUseStyles } from 'react-jss';
-import { Form, Input, Select, Button, Table, Card } from 'antd';
+import { Form, Input, Select, Button, Table, Card, Alert } from 'antd';
 import Title from '../components/Title';
 import {
   createReference,
@@ -12,7 +12,12 @@ import {
 import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
-import { formatFormulaByIndex } from '../utils/helpers';
+import { formatFormulaByIndex, sentenceCase } from '../utils/helpers';
+import { useDataMutation, useDataQuery } from '@dhis2/app-runtime';
+import useAddDictionary from '../hooks/useAddDictionary';
+import ExpressionInput from '../components/ExpressionInput';
+import { aggregationTypes, components, dataTypeOptions } from '../Data/options';
+import delay from '../utils/delay';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -81,18 +86,32 @@ const useStyles = createUseStyles({
     backgroundColor: '#F5F9FC',
   },
 });
-
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
   const [topics, setTopics] = useState('');
   const [valueTypes, setValueTypes] = useState([]);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState({
-    name: '',
-    valueType: null,
+  const [currentQuestion, setCurrentQuestion] = useState();
+  const [indicatorName, setIndicatorName] = useState('');
+  const [validations, setValidations] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    loading: indicatorTypeLoading,
+    error: indicatorTypeError,
+    // destructure indicatorTypes
+    data: { indicatorTypes: { indicatorTypes } = {} } = {},
+  } = useDataQuery({
+    indicatorTypes: {
+      resource: 'indicatorTypes',
+      params: {
+        fields: 'id,displayName',
+      },
+    },
   });
-  const [isQuantitative, setIsQuantitative] = useState(false);
+
+  const { createDataElements, success: indicatorSuccess } = useAddDictionary();
 
   const classes = useStyles();
 
@@ -100,6 +119,53 @@ export default function NewIndicator({ user }) {
 
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const optionsMutation = {
+    resource: 'options',
+    type: 'create',
+    data: ({ name, code, sortOrder, optionSet }) => ({
+      name,
+      code,
+      sortOrder,
+      optionSet,
+    }),
+  };
+  const mutation = {
+    resource: 'optionSets',
+    type: 'create',
+    data: ({ name }) => ({
+      name,
+      valueType: 'TEXT',
+    }),
+  };
+
+  const [mutate] = useDataMutation(mutation);
+  const [mutateOptions] = useDataMutation(optionsMutation);
+
+  const createOptionSet = async () => {
+    const questionsWithOptionSet = questions.filter(
+      question => question.options
+    );
+    const optionSetPromises = questionsWithOptionSet.map(async question => {
+      const { name, options } = question;
+      const { response } = await mutate({ name, options });
+      const optionSetId = response.uid;
+      const optionPromises = options.map(async (option, i) => {
+        await delay(i, 700);
+        await mutateOptions({
+          name: option,
+          code: option,
+          sortOrder: i + 1,
+          optionSet: { id: optionSetId },
+        });
+        return { optionSetId };
+      });
+      await Promise.all(optionPromises);
+      return { ...question, optionSetId };
+    });
+    const optionSetResults = await Promise.all(optionSetPromises);
+    return { optionSetId: optionSetResults[0]?.optionSetId };
+  };
 
   const fetchDetails = async () => {
     try {
@@ -136,34 +202,49 @@ export default function NewIndicator({ user }) {
     fetchDropdowns();
   }, [id]);
 
-  const footer = (
-    <div className={classes.footer}>
-      <Button
-        onClick={() => {
-          setQuestions([]);
-          form.resetFields();
-          setCurrentQuestion({ name: '', valueType: '' });
-          navigate('/indicators/dictionary');
-        }}
-        className={classes.btnCancel}
-      >
-        Cancel
-      </Button>
-      <Button
-        onClick={() => {
-          form.submit();
-        }}
-        className={classes.btnSuccess}
-      >
-        Save
-      </Button>
-    </div>
-  );
+  useEffect(() => {
+    if (indicatorSuccess) {
+      setSuccess('Indicator added successfully!');
+      setTimeout(() => {
+        setSuccess(false);
+        navigate('/indicators/dictionary');
+      }, 2000);
+    }
+  }, [indicatorSuccess]);
 
-  const handleKeyPress = () => {
-    if (currentQuestion.name && currentQuestion.valueType) {
+  const handleAddQuestion = () => {
+    if (currentQuestion?.name && currentQuestion?.valueType) {
+      if (currentQuestion?.valueType === 'CODED') {
+        if (
+          !currentQuestion?.options ||
+          currentQuestion?.options?.length === 0
+        ) {
+          setValidations('Please add options for this question');
+          return;
+        }
+      }
       setQuestions([...questions, currentQuestion]);
       setCurrentQuestion({ name: null, valueType: null });
+      setValidations(null);
+    } else {
+      setValidations('Please add a question and select a type');
+    }
+  };
+
+  const handleRemoveClick = (record, index) => {
+    const denominator = form.getFieldValue('denominator');
+    const numerator = form.getFieldValue('numerator');
+    const denominatorHasQuestion = denominator?.includes(record.name);
+    const numeratorHasQuestion = numerator?.includes(record.name);
+    if (denominatorHasQuestion || numeratorHasQuestion) {
+      setError(
+        'This question is used in a formula. Please remove it from the formula to delete it.'
+      );
+      setTimeout(() => {
+        setError(false);
+      }, 6000);
+    } else {
+      setQuestions(questions.filter((_, i) => i !== index));
     }
   };
 
@@ -190,22 +271,7 @@ export default function NewIndicator({ user }) {
           type='danger'
           kind='link'
           className={classes.danger}
-          onClick={() => {
-            const denominator = form.getFieldValue('denominator');
-            const numerator = form.getFieldValue('numerator');
-            const denominatorHasQuestion = denominator?.includes(record.name);
-            const numeratorHasQuestion = numerator?.includes(record.name);
-            if (denominatorHasQuestion || numeratorHasQuestion) {
-              setError(
-                'This question is used in a formula. Please remove it from the formula to delete it.'
-              );
-              setTimeout(() => {
-                setError(false);
-              }, 6000);
-            } else {
-              setQuestions(questions.filter((_, i) => i !== index));
-            }
-          }}
+          onClick={() => handleRemoveClick(record, index)}
         >
           Remove
         </Button>
@@ -216,12 +282,36 @@ export default function NewIndicator({ user }) {
 
   const handleSubmit = async values => {
     try {
-      const numerator = values.numerator || '';
-      const denominator = values.denominator || '';
+      const { numerator = '', denominator = '' } = values;
 
-      let payload = {
+      const finalQuestions = await Promise.all(
+        questions.map(async question => {
+          if (question.options) {
+            const { optionSetId } = await createOptionSet();
+            const options = question.options?.map(option => ({
+              name: option,
+              code: option,
+            }));
+
+            return {
+              ...question,
+              options: undefined,
+              valueType: question.valueType?.replace('CODED', 'TEXT'),
+              aggregationType:
+                question.valueType === 'NUMBER' ? 'SUM' : 'COUNT',
+              optionSet: {
+                id: optionSetId,
+                options,
+              },
+            };
+          }
+          return question;
+        })
+      );
+
+      const payload = {
         ...values,
-        assessmentQuestions: questions,
+        assessmentQuestions: finalQuestions,
         createdBy: {
           id: user?.me?.id,
           code: '',
@@ -231,96 +321,67 @@ export default function NewIndicator({ user }) {
         },
         formula: {
           format: values.format,
+          numerator,
+          denominator,
         },
       };
 
-      [numerator, denominator].forEach((formula, index) => {
-        if (formula) {
-          const formattedFormula = formatFormulaByIndex(formula, questions);
-          if (index === 0) {
-            payload.formula = {
-              ...payload.formula,
-              numerator: formattedFormula,
-            };
-          } else {
-            payload.formula = {
-              ...payload.formula,
-              denominator: formattedFormula,
-            };
-          }
-        }
-      });
       delete payload.numerator;
       delete payload.denominator;
       delete payload.format;
 
-      const saveReference = id
-        ? updateReference(id, payload)
-        : createReference(payload);
-      if (saveReference) {
-        setSuccess(() =>
-          id
-            ? 'Indicator updated successfully!'
-            : 'Indicator created successfully!'
-        );
-        setTimeout(() => {
-          setSuccess(false);
-          navigate('/indicators/dictionary');
-        }, 2000);
-      }
+      await createDataElements(payload);
     } catch (error) {
       console.log(error);
       setError('Something went wrong!');
     }
   };
 
-  const methodsOfEstimationOptions = [
-    { label: 'Qualitative', value: 'Qualitative' },
-    { label: 'Quantitative', value: 'Quantitative' },
-  ];
-
-  const typeOfFormulaOptions = [
-    { label: 'Percentage', value: 'Percentage' },
-    { label: 'Number', value: 'Number' },
-  ];
-
-  const components = {
-    'Pharmaceutical Products and Services': [
-      'Procurement',
-      'Distribution',
-      'Use',
-    ],
-    'Policy, Laws, and Governance': [
-      'Pharmaceutical policies',
-      'Pharmaceutical laws and regulations',
-      'Coordination and leadership',
-      'Ethics, transparency and accountability',
-    ],
-    'Regulatory Systems': [
-      'Product assessment and registration',
-      'Licensing of establishments and personnel',
-      'Inspection and enforcement',
-      'Quality and safety surveillance',
-      'Regulation and oversight of clinical trials',
-      'Control of pharmaceutical marketing practices',
-    ],
-    'Innovation, Research and Development, Manufacturing, and Trade': [
-      'Innovation, research and development',
-      'Manufacturing capacity',
-      'Intellectual property and trade',
-    ],
-    Financing: [
-      'Resource coordination, allocation, distribution and payment',
-      'Financial risk protection strategies',
-      'Revenue and expenditure tracking and management',
-      'Costing and pricing',
-    ],
-    'Human Resources': [
-      'Human resources policy and strategy',
-      'Human resources management',
-      'Human resources development',
-    ],
+  const addQuestionOptions = values => {
+    const { options } = values;
+    const textOptions = options?.map(option => option?.key);
+    setCurrentQuestion({ ...currentQuestion, options: textOptions });
   };
+
+  const footer = (
+    <div className={classes.footer}>
+      <Button
+        onClick={() => {
+          setQuestions([]);
+          form.resetFields();
+          setCurrentQuestion({ name: null, valueType: null });
+          navigate('/indicators/dictionary');
+        }}
+        className={classes.btnCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={() => {
+          form.submit();
+        }}
+        className={classes.btnSuccess}
+        loading={loading}
+      >
+        Save
+      </Button>
+    </div>
+  );
+
+  const methods = [
+    'if()',
+    'isNull()',
+    'isNotNull()',
+    'AND',
+    'NOT',
+    'OR',
+    '==',
+    '<',
+    '>',
+    '>=',
+    '<=',
+    '!=',
+  ];
 
   return (
     <CardItem title='ADD INDICATOR' footer={footer}>
@@ -350,7 +411,11 @@ export default function NewIndicator({ user }) {
               },
             ]}
           >
-            <Input placeholder='Name' size='large' />
+            <Input
+              onChange={e => setIndicatorName(e.target.value)}
+              placeholder='Name'
+              size='large'
+            />
           </Form.Item>
           <Form.Item
             name='systemComponent'
@@ -437,49 +502,75 @@ export default function NewIndicator({ user }) {
             <Select
               placeholder='Select a data type'
               size='large'
-              options={valueTypes?.map(dataType => {
-                return {
-                  value: dataType,
-                  label: dataType,
-                };
-              })}
+              options={dataTypeOptions}
             />
           </Form.Item>
         </div>
         <Title text='ASSESSMENT QUESTIONS:' type='primary' />
         <div className={classes.questions}>
           <div className={classes.question}>
-            <Input
-              placeholder='Add Question'
-              size='large'
-              value={currentQuestion.name}
-              onChange={e =>
-                setCurrentQuestion({
-                  ...currentQuestion,
-                  name: e.target.value,
-                })
-              }
-            />
-            <Select
-              className={classes.select}
-              placeholder={'Select a type'}
-              size='large'
-              value={currentQuestion.valueType}
-              onChange={value =>
-                setCurrentQuestion({ ...currentQuestion, valueType: value })
-              }
-              options={valueTypes?.map(valueType => {
-                return {
-                  value: valueType,
-                  label: valueType,
-                };
-              })}
-            />
-
-            <Button size='large' type='primary' onClick={handleKeyPress}>
-              Add
-            </Button>
+            <div className={classes.questionInputs}>
+              <Input
+                placeholder='Add Question'
+                size='large'
+                value={currentQuestion?.name}
+                onChange={e => {
+                  setCurrentQuestion({
+                    ...currentQuestion,
+                    name: e.target.value,
+                  });
+                  setValidations(null);
+                }}
+              />
+              <Select
+                className={classes.select}
+                placeholder={'Select a type'}
+                size='large'
+                value={currentQuestion?.valueType}
+                onChange={value => {
+                  setValidations(null);
+                  setCurrentQuestion({ ...currentQuestion, valueType: value });
+                }}
+                options={[
+                  ...(valueTypes?.map(valueType => {
+                    return {
+                      value: valueType,
+                      label: sentenceCase(
+                        valueType?.replace(/SELECTION/g, 'Yes/No')
+                      ),
+                    };
+                  }) || []),
+                  {
+                    label: 'Multiple Choice',
+                    value: 'CODED',
+                  },
+                ]}
+              />
+            </div>
+            {currentQuestion?.valueType === 'CODED' && (
+              <div className={classes.questionsContainer}>
+                <h1>Add Selection Options</h1>
+                <div className={classes.selections}>
+                  <OptionsForm onFinish={addQuestionOptions} />
+                </div>
+              </div>
+            )}
+            {validations && (
+              <Alert
+                showIcon
+                message={validations}
+                type='error'
+                size='small'
+                style={{ marginBottom: '10px' }}
+              />
+            )}
+            <div className={`${classes.footer} ${classes.borderTop}`}>
+              <Button size='large' type='primary' onClick={handleAddQuestion}>
+                Add
+              </Button>
+            </div>
           </div>
+
           <Table
             className={classes.table}
             dataSource={questions}
@@ -510,11 +601,15 @@ export default function NewIndicator({ user }) {
           </Form.Item>
 
           <Form.Item
-            name='proposedScoring'
-            label='Targets'
+            name='benchmark'
+            label='National Benchmark'
             className={classes.definition}
           >
-            <Input.TextArea placeholder='Targets' size='large' rows={5} />
+            <Input.TextArea
+              placeholder='National Benchmark'
+              size='large'
+              rows={5}
+            />
           </Form.Item>
           <Form.Item
             name='expectedFrequencyDataDissemination'
@@ -552,6 +647,7 @@ export default function NewIndicator({ user }) {
             />
           </Form.Item>
         </div>
+
         <Card title='FORMULA' className={classes.formula} size='small'>
           <div className={classes.basicDetails}>
             <Form.Item
@@ -568,14 +664,7 @@ export default function NewIndicator({ user }) {
                 placeholder='Select a method of estimation'
                 notFoundContent='No methods of estimation found'
                 size='large'
-                options={methodsOfEstimationOptions}
-                onChange={value => {
-                  if (value === 'Quantitative') {
-                    setIsQuantitative(true);
-                  } else {
-                    setIsQuantitative(false);
-                  }
-                }}
+                options={aggregationTypes}
               />
             </Form.Item>
             <Form.Item
@@ -592,33 +681,57 @@ export default function NewIndicator({ user }) {
                 placeholder='Select a type of formula'
                 notFoundContent='No types of formula found'
                 size='large'
-                options={typeOfFormulaOptions}
+                options={indicatorTypes?.map(item => ({
+                  label: item?.displayName,
+                  value: item?.id,
+                }))}
               />
             </Form.Item>
-            {isQuantitative && (
-              <>
-                <FormulaInput
-                  questions={questions.map((question, i) => question.name)}
-                  Form={Form}
-                  form={form}
-                  Input={Input}
-                  name='numerator'
-                  label='Numerator'
-                  placeholder={'Numerator'}
-                  required={true}
-                />
-                <FormulaInput
-                  questions={questions.map((question, i) => question.name)}
-                  Form={Form}
-                  form={form}
-                  Input={Input}
-                  name='denominator'
-                  label='Denominator'
-                  placeholder={'Denominator'}
-                  required={true}
-                />
-              </>
-            )}
+            <div className={classes.expression}>
+              <Alert
+                showIcon
+                message={`Allowed methods are:\n ${
+                  methods?.join(', ') || ''
+                } (case insensitive)`}
+                type='info'
+                size='small'
+                style={{ marginBottom: '10px' }}
+              />
+
+              <ExpressionInput
+                questions={questions.map((question, i) => question.name)}
+                Form={Form}
+                form={form}
+                Input={Input}
+                name='expression'
+                placeholder='Expression'
+                label='Expression'
+                indicatorName={indicatorName}
+              />
+            </div>
+
+            <FormulaInput
+              questions={questions.map((question, i) => question.name)}
+              Form={Form}
+              form={form}
+              Input={Input}
+              name='numerator'
+              label='Numerator'
+              placeholder={'Numerator'}
+              required={true}
+              indicatorName={indicatorName}
+            />
+            <FormulaInput
+              questions={questions.map((question, i) => question.name)}
+              Form={Form}
+              form={form}
+              Input={Input}
+              name='denominator'
+              label='Denominator'
+              placeholder={'Denominator'}
+              required={true}
+              indicatorName={indicatorName}
+            />
           </div>
         </Card>
       </Form>

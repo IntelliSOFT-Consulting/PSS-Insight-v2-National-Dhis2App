@@ -126,6 +126,7 @@ export default function NewVersion({ user }) {
       setIndicators(sortedIndicators);
       setLoadingIndicators(false);
     } catch (error) {
+      console.log(error)
       setError('Something went wrong while fetching the indicators');
       setLoadingIndicators(false);
     }

@@ -209,3 +209,36 @@ export const formatFormulaByIndex = (formula, questions) => {
 
   return replacedFormula;
 };
+
+export const formatFormula = (formula, dataElements) => {
+  const variableRegex = /\{([^}]+)\}/g;
+
+  const replacedFormula = formula?.replace(variableRegex, (match, name) => {
+    const index = dataElements?.find(q => q.name?.trim() === name.trim());
+    return `#{${index.id.toString()}}`;
+  });
+
+  return replacedFormula;
+};
+
+export const formatExpression = (formula, dataElements, programStageId) => {
+  const variableRegex = /\{([^}]+)\}/g;
+
+  const replacedFormula = formula?.replace(variableRegex, (match, name) => {
+    const index = dataElements?.find(q => q.name?.trim() === name.trim());
+    return `#{${programStageId}}.#{${index.id.toString()}}`;
+  });
+
+  return replacedFormula?.trim();
+};
+
+export const filterValidEmails = emails => {
+  return emails.filter(email => {
+    return email.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/);
+  });
+};
+
+export const sentenceCase = str => {
+  if (!str) return '';
+  return str?.charAt(0)?.toUpperCase() + str?.toLowerCase()?.slice(1);
+};

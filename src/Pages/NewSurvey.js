@@ -142,6 +142,7 @@ export default function NewSurvey({ user }) {
       setIndicators(sortedIndicators);
       setLoadingIndicators(false);
     } catch (error) {
+      console.log(error)
       setError('Something went wrong, please try again later');
       setLoadingIndicators(false);
     }
