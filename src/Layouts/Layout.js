@@ -50,11 +50,6 @@ const createLink = (label, path) => <Link to={path}>{label}</Link>;
 
 export default function MainLayout({ layout, user }) {
   const classes = useStyles();
-  const query = {
-    me: {
-      resource: 'me',
-    },
-  };
 
   const baseUrl = window.location.origin;
 
@@ -139,58 +134,50 @@ export default function MainLayout({ layout, user }) {
   ];
 
   return (
-    <DataQuery query={query}>
-      {({ error, loading, data }) => {
-        if (error) return <span>ERROR</span>;
-        if (loading) return <Loader />;
-        return (
-          <div className={classes.layout}>
-            <Layout>
-              <Sider
-                width={250}
-                style={{
-                  minHeight: 'calc(100vh - 48px)',
-                }}
-              >
-                <Menu
-                  mode='inline'
-                  defaultSelectedKeys={['1']}
-                  defaultOpenKeys={['sub1']}
-                  style={{
-                    height: '100%',
-                    borderRight: 0,
-                  }}
-                  items={sideLinks}
-                />
-              </Sider>
-            </Layout>
-            <Layout
-              style={{
-                padding: '0 24px 24px',
-              }}
-            >
-              <Content
-                style={{
-                  padding: 24,
-                  margin: 0,
-                  minHeight: 280,
-                }}
-              >
-                <Routes>
-                  <Route path='/' element={<Home user={data} />} />
-                  {routes.map((route, index) => (
-                    <Route
-                      key={index}
-                      path={route.path}
-                      element={<route.element user={data} />}
-                    />
-                  ))}
-                </Routes>
-              </Content>
-            </Layout>
-          </div>
-        );
-      }}
-    </DataQuery>
+    <div className={classes.layout}>
+      <Layout>
+        <Sider
+          width={250}
+          style={{
+            minHeight: 'calc(100vh - 48px)',
+          }}
+        >
+          <Menu
+            mode='inline'
+            defaultSelectedKeys={['1']}
+            defaultOpenKeys={['sub1']}
+            style={{
+              height: '100%',
+              borderRight: 0,
+            }}
+            items={sideLinks}
+          />
+        </Sider>
+      </Layout>
+      <Layout
+        style={{
+          padding: '0 24px 24px',
+        }}
+      >
+        <Content
+          style={{
+            padding: 24,
+            margin: 0,
+            minHeight: 280,
+          }}
+        >
+          <Routes>
+            <Route path='/' element={<Home user={user} />} />
+            {routes.map((route, index) => (
+              <Route
+                key={index}
+                path={route.path}
+                element={<route.element user={user} />}
+              />
+            ))}
+          </Routes>
+        </Content>
+      </Layout>
+    </div>
   );
 }

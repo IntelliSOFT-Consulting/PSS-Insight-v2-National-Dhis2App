@@ -54,6 +54,15 @@ export default function useAddDictionary() {
     getIndicatorDescriptions();
   }, []);
 
+  const dataElementFormatter = (dataElement, keyword) => ({
+    name: `${dataElement.code}_${keyword}`,
+    shortName: `${dataElement.code}_${keyword}`,
+    code: `${dataElement.code}_${keyword}`,
+    valueType: 'TEXT',
+    aggregationType: 'NONE',
+    domainType: 'TRACKER',
+  });
+
   const addDataToStore = async (dictionary, elements) => {
     const storeData = Array.isArray(indicatorDescriptions)
       ? indicatorDescriptions
@@ -91,8 +100,7 @@ export default function useAddDictionary() {
         code: `${datas.indicatorCode}${String.fromCharCode(97 + index)}`,
         domainType: 'TRACKER',
         valueType: data.valueType?.replace('CODED', 'TEXT'),
-        aggregationType:
-          data.valueType === ('TEXT' || 'CODED') ? 'COUNT' : 'SUM',
+        aggregationType: datas.methodOfEstimation,
       };
       if (data.optionSet) {
         dataElement.optionSet = {
@@ -109,8 +117,9 @@ export default function useAddDictionary() {
       code: datas.indicatorCode,
       domainType: 'TRACKER',
       valueType: datas.dataType?.replace('CODED', 'TEXT'),
-      aggregationType: datas.dataType === ('TEXT' || 'CODED') ? 'COUNT' : 'SUM',
+      aggregationType: datas.methodOfEstimation,
     };
+
     dataElements.push(dataElement);
 
     return dataElements;
@@ -120,22 +129,9 @@ export default function useAddDictionary() {
   const formatDataElementsForCommentsAndUploads = dataElements => {
     const dataElementsForCommentsAndUploads = [];
     dataElements.forEach(dataElement => {
-      const commentDataElement = {
-        name: `${dataElement.code}_Comment`,
-        shortName: `${dataElement.code}_Comment`,
-        code: `${dataElement.code}_Comment`,
-        domainType: 'TRACKER',
-        valueType: 'TEXT',
-        aggregationType: 'NONE',
-      };
-      const uploadDataElement = {
-        name: `${dataElement.code}_Upload`,
-        shortName: `${dataElement.code}_Upload`,
-        code: `${dataElement.code}_Upload`,
-        domainType: 'TRACKER',
-        valueType: 'TEXT',
-        aggregationType: 'NONE',
-      };
+      const commentDataElement = dataElementFormatter(dataElement, 'Comment');
+      const uploadDataElement = dataElementFormatter(dataElement, 'Upload');
+
       dataElementsForCommentsAndUploads.push(commentDataElement);
       dataElementsForCommentsAndUploads.push(uploadDataElement);
     });
@@ -146,12 +142,24 @@ export default function useAddDictionary() {
     const dataElements = formatAssessmentQuestions(dictionary);
     const dataElementsForCommentsAndUploads =
       formatDataElementsForCommentsAndUploads(dataElements);
-    return [...dataElements, ...dataElementsForCommentsAndUploads];
+    // create a data element for the benchmark
+    const benchmarkDataElement = {
+      name: `${dictionary.indicatorCode}_Benchmark`,
+      shortName: `${dictionary.indicatorCode}_Benchmark`,
+      code: `${dictionary.indicatorCode}_Benchmark`,
+      domainType: 'AGGREGATE',
+      valueType: 'NUMBER',
+      aggregationType: 'NONE',
+    };
+    return [
+      ...dataElements,
+      ...dataElementsForCommentsAndUploads,
+      benchmarkDataElement,
+    ];
   };
 
   const createDataElements = async dictionary => {
     try {
-      // setDictionary(dictionary);
       const dataElements = createDictionary(dictionary);
 
       const elementNames = dataElements.map(element => element.name);
@@ -176,6 +184,28 @@ export default function useAddDictionary() {
           {
             onComplete: async ({ dataElements }) => {
               const datas = dataElements?.dataElements;
+
+              // get dataElement with Benchmark
+              const benchmarkDataElement = datas.find(
+                dataElement =>
+                  dataElement.name === `${dictionary.indicatorCode}_Benchmark`
+              );
+
+              // save dataValueSet for benchmark
+              await engine.mutate({
+                resource: 'dataValueSets',
+                type: 'create',
+                data: {
+                  dataValues: [
+                    {
+                      dataElement: benchmarkDataElement.id,
+                      value: dictionary.benchmark || 0,
+                      period: new Date().toISOString().split('T')[0],
+                      orgUnit: dictionary.orgUnit,
+                    },
+                  ],
+                },
+              });
 
               await addDataToStore(dictionary, datas);
               // add data elements to program
@@ -263,10 +293,12 @@ export default function useAddDictionary() {
         {
           boundaryTarget: 'EVENT_DATE',
           analyticsPeriodBoundaryType: 'AFTER_START_OF_REPORTING_PERIOD',
+          offsetPeriodType: 'Yearly',
         },
         {
           boundaryTarget: 'EVENT_DATE',
           analyticsPeriodBoundaryType: 'BEFORE_END_OF_REPORTING_PERIOD',
+          offsetPeriodType: 'Yearly',
         },
       ],
     };

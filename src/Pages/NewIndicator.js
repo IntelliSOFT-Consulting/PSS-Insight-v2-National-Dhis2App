@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CardItem from '../components/Card';
 import { createUseStyles } from 'react-jss';
 import { Form, Input, Select, Button, Table, Card, Alert } from 'antd';
 import Title from '../components/Title';
-import {
-  createReference,
-  getReferenceDetails,
-  updateReference,
-  getDropdowns,
-} from '../api/indicators';
+import { getReferenceDetails } from '../api/indicators';
 import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
-import { formatFormulaByIndex, sentenceCase } from '../utils/helpers';
 import { useDataMutation, useDataQuery } from '@dhis2/app-runtime';
 import useAddDictionary from '../hooks/useAddDictionary';
 import ExpressionInput from '../components/ExpressionInput';
-import { aggregationTypes, components, dataTypeOptions } from '../Data/options';
+import OptionsForm from '../components/optionsForm';
+import {
+  aggregationTypes,
+  components,
+  dataTypeOptions,
+  valueTypeOptions,
+} from '../Data/options';
 import delay from '../utils/delay';
 
 const useStyles = createUseStyles({
@@ -30,24 +30,39 @@ const useStyles = createUseStyles({
       gridTemplateColumns: '1fr',
     },
   },
+
+  expression: {
+    gridColumn: '1 / 3',
+    gridRow: '2 / 3',
+  },
   definition: {
     gridColumn: '2 / 3',
     gridRow: '3 / 5',
   },
   question: {
-    display: 'flex',
-    alignItems: 'center',
+    border: '1px solid rgba(2, 102, 185, 0.5)',
+    padding: '10px',
+    borderRadius: '5px',
+    boxShadow: '0 0 5px 0px rgba(2, 102, 185, 0.5)',
     '& input': {
       width: '100%',
     },
-    '& button': {
-      marginLeft: '1rem',
+    '& .ant-btn-primary': {
       backgroundColor: '#002656',
       padding: '0 2rem !important',
       '&:hover': {
         backgroundColor: '#002F6C !important',
       },
     },
+  },
+  questionInputs: {
+    display: 'flex',
+    alignItems: 'center',
+    paddingBottom: '1rem',
+  },
+  borderTop: {
+    borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+    paddingTop: '10px',
   },
   select: {
     width: '20% !important',
@@ -85,17 +100,45 @@ const useStyles = createUseStyles({
   formula: {
     backgroundColor: '#F5F9FC',
   },
+  selections: {
+    margin: '1rem 0px',
+    padding: '1rem 0px',
+    '& .ant-btn-block': {
+      marginTop: '1rem',
+    },
+  },
+  questionsContainer: {
+    padding: '10px',
+    border: '1px dashed #ccc',
+    borderRadius: '5px',
+    backgroundColor: '#E0E0E0',
+    margin: '10px 0px',
+    width: '50%',
+    '& >h1': {
+      fontSize: '15px',
+      fontWeight: 'bold',
+      padding: '0px',
+      margin: '0px',
+    },
+    '& .ant-btn-dashed': {
+      '&:hover': {
+        color: '#0266b9 !important',
+        borderColor: '#0266b9 !important',
+      },
+    },
+  },
 });
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
   const [topics, setTopics] = useState('');
-  const [valueTypes, setValueTypes] = useState([]);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState();
   const [indicatorName, setIndicatorName] = useState('');
   const [validations, setValidations] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const formRef = useRef();
 
   const {
     loading: indicatorTypeLoading,
@@ -184,22 +227,10 @@ export default function NewIndicator({ user }) {
     }
   };
 
-  const fetchDropdowns = async () => {
-    try {
-      const data = await getDropdowns();
-      if (data) {
-        setValueTypes(data.valueType?.details);
-      }
-    } catch (error) {
-      setError('Something went wrong!');
-    }
-  };
-
   useEffect(() => {
     if (id) {
       fetchDetails();
     }
-    fetchDropdowns();
   }, [id]);
 
   useEffect(() => {
@@ -252,20 +283,27 @@ export default function NewIndicator({ user }) {
     {
       title: 'QUESTIONS',
       dataIndex: 'name',
-      key: 'name',
     },
     {
       title: 'TYPE',
       dataIndex: 'valueType',
-      key: 'valueType',
-      render: text =>
-        text === 'SELECTION' ? 'Yes/No' : text === 'NUMBER' ? 'Number' : 'Text',
+      render: (text, _record) => {
+        switch (text) {
+          case 'BOOLEAN':
+            return 'Yes/No';
+          case 'NUMBER':
+            return 'Number';
+          case 'CODED':
+            return 'Multiple Choice';
+          default:
+            return 'Text';
+        }
+      },
       width: '30%',
     },
     {
       title: 'ACTIONS',
       dataIndex: 'action',
-      key: 'action',
       render: (_, record, index) => (
         <Button
           type='danger'
@@ -282,6 +320,9 @@ export default function NewIndicator({ user }) {
 
   const handleSubmit = async values => {
     try {
+      await form.validateFields();
+      setLoading(true);
+
       const { numerator = '', denominator = '' } = values;
 
       const finalQuestions = await Promise.all(
@@ -324,6 +365,7 @@ export default function NewIndicator({ user }) {
           numerator,
           denominator,
         },
+        orgUnit: user?.me?.organisationUnits[0]?.id,
       };
 
       delete payload.numerator;
@@ -331,8 +373,20 @@ export default function NewIndicator({ user }) {
       delete payload.format;
 
       await createDataElements(payload);
+      setLoading(false);
     } catch (error) {
-      console.log(error);
+      const firstErrorField = Object.keys(error.errorFields)[0];
+
+      console.log(firstErrorField);
+      const errorFieldElement =
+        formRef?.current.getFieldInstance(firstErrorField);
+
+      if (errorFieldElement) {
+        errorFieldElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
       setError('Something went wrong!');
     }
   };
@@ -399,7 +453,7 @@ export default function NewIndicator({ user }) {
           onClose={() => setError(false)}
         />
       )}
-      <Form layout='vertical' form={form} onFinish={handleSubmit}>
+      <Form ref={formRef} layout='vertical' form={form} onFinish={handleSubmit}>
         <div className={classes.basicDetails}>
           <Form.Item
             label='Indicator Name'
@@ -451,7 +505,11 @@ export default function NewIndicator({ user }) {
               },
             ]}
           >
-            <Input placeholder='PSS Insight Indicator #' size='large' />
+            <Input
+              className='bg-red'
+              placeholder='PSS Insight Indicator #'
+              size='large'
+            />
           </Form.Item>
 
           <Form.Item
@@ -531,20 +589,7 @@ export default function NewIndicator({ user }) {
                   setValidations(null);
                   setCurrentQuestion({ ...currentQuestion, valueType: value });
                 }}
-                options={[
-                  ...(valueTypes?.map(valueType => {
-                    return {
-                      value: valueType,
-                      label: sentenceCase(
-                        valueType?.replace(/SELECTION/g, 'Yes/No')
-                      ),
-                    };
-                  }) || []),
-                  {
-                    label: 'Multiple Choice',
-                    value: 'CODED',
-                  },
-                ]}
+                options={valueTypeOptions}
               />
             </div>
             {currentQuestion?.valueType === 'CODED' && (
@@ -581,6 +626,7 @@ export default function NewIndicator({ user }) {
             locale={{
               emptyText: 'No questions added yet',
             }}
+            rowKey={record => record.name}
           />
         </div>
         <div className={classes.basicDetails}>
@@ -621,10 +667,12 @@ export default function NewIndicator({ user }) {
                   'Please input the expected frequency of data dissemination!',
               },
             ]}
+            initialValue={'Yearly'}
           >
             <Input
               placeholder='Expected Frequency of Data Dissemination'
               size='large'
+              disabled
             />
           </Form.Item>
           <Form.Item
@@ -731,6 +779,7 @@ export default function NewIndicator({ user }) {
               placeholder={'Denominator'}
               required={true}
               indicatorName={indicatorName}
+              className='bg-[red]'
             />
           </div>
         </Card>

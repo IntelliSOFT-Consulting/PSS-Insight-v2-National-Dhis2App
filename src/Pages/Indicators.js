@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Card from '../components/Card';
-import { Table, Popconfirm, Button, Input } from 'antd';
+import { Table, Popconfirm, Button, Input, Space } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { createUseStyles } from 'react-jss';
 import { Link } from 'react-router-dom';
 import { getReferences, deleteReference } from '../api/indicators';
+import Highlighter from 'react-highlight-words';
 
 const useStyles = createUseStyles({
   header: {
@@ -62,9 +64,10 @@ const useStyles = createUseStyles({
 
 export default function Indicators() {
   const [indicators, setIndicators] = useState([]);
-  const [search, setSearch] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
 
   const styles = useStyles();
 
@@ -73,7 +76,6 @@ export default function Indicators() {
     try {
       const data = await getReferences();
       setIndicators(data);
-      setSearch(data);
     } catch (error) {
       setError('Error fetching indicators');
     }
@@ -93,6 +95,97 @@ export default function Indicators() {
     fetchIndicators();
   }, []);
 
+  const searchInput = useRef(null);
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+  const handleReset = (clearFilters, confirm) => {
+    clearFilters();
+    setSearchText('');
+    confirm();
+  };
+
+  const getColumnSearchProps = dataIndex => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+        onKeyDown={e => e.stopPropagation()}
+      >
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={e =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{
+            marginBottom: 8,
+            display: 'block',
+          }}
+        />
+        <Space>
+          <Button
+            type='primary'
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size='small'
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters, confirm)}
+            size='small'
+            style={{
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: filtered => (
+      <SearchOutlined
+        style={{
+          color: filtered ? '#1890ff' : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: visible => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: text =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{
+            backgroundColor: '#ffc069',
+            padding: 0,
+          }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ''}
+        />
+      ) : (
+        text
+      ),
+  });
   const columns = [
     {
       title: '#',
@@ -106,12 +199,18 @@ export default function Indicators() {
       dataIndex: 'indicatorName',
       key: 'indicatorName',
       width: '30%',
+      sorter: (a, b) => new Date(a.indicatorName) - new Date(b.indicatorName),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearchProps('indicatorName'),
     },
     {
       title: 'CODE',
       dataIndex: 'indicatorCode',
       key: 'indicatorCode',
       width: '30%',
+      sorter: (a, b) => new Date(a.indicatorCode) - new Date(b.indicatorCode),
+      sortDirections: ['descend', 'ascend'],
+      ...getColumnSearchProps('indicatorCode'),
     },
     {
       title: 'ACTIONS',
@@ -137,20 +236,6 @@ export default function Indicators() {
     },
   ];
 
-  const handleSearch = value => {
-    // filter by name or code
-    const filtered = indicators.filter(
-      indicator =>
-        indicator.indicatorName.toLowerCase().includes(value.toLowerCase()) ||
-        indicator.indicatorCode.toLowerCase().includes(value.toLowerCase())
-    );
-    setSearch(filtered);
-  };
-
-  const handleReset = () => {
-    setSearch(indicators);
-  };
-
   return (
     <Card
       title={
@@ -162,22 +247,15 @@ export default function Indicators() {
         </div>
       }
     >
-      <Input.Search
-        placeholder='Search by name or code'
-        onSearch={handleSearch}
-        onReset={handleReset}
-        allowClear
-        className={styles.search}
-        size='large'
-      />
-
       <Table
         columns={columns}
         loading={loading}
-        dataSource={search || []}
+        dataSource={indicators || []}
         rowKey='uuid'
         pagination={
-          search.length > 15 ? { pageSize: 15, showSizeChanger: false } : false
+          indicators.length > 15
+            ? { pageSize: 15, showSizeChanger: false }
+            : false
         }
         className={styles.centered}
         locale={{

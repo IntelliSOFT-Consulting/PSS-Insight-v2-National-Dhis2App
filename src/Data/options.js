@@ -92,3 +92,22 @@ export const dataTypeOptions = [
     value: 'BOOLEAN',
   },
 ];
+
+export const valueTypeOptions = [
+  {
+    label: 'Number',
+    value: 'NUMBER',
+  },
+  {
+    label: 'Text',
+    value: 'TEXT',
+  },
+  {
+    label: 'Yes/No',
+    value: 'BOOLEAN',
+  },
+  {
+    label: 'Multiple Choice',
+    value: 'CODED',
+  },
+];
