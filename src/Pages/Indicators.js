@@ -198,7 +198,6 @@ export default function Indicators() {
       title: 'NAME',
       dataIndex: 'indicatorName',
       key: 'indicatorName',
-      width: '30%',
       sorter: (a, b) => new Date(a.indicatorName) - new Date(b.indicatorName),
       sortDirections: ['descend', 'ascend'],
       ...getColumnSearchProps('indicatorName'),
@@ -207,7 +206,7 @@ export default function Indicators() {
       title: 'CODE',
       dataIndex: 'indicatorCode',
       key: 'indicatorCode',
-      width: '30%',
+      width: '150',
       sorter: (a, b) => new Date(a.indicatorCode) - new Date(b.indicatorCode),
       sortDirections: ['descend', 'ascend'],
       ...getColumnSearchProps('indicatorCode'),
@@ -220,19 +219,9 @@ export default function Indicators() {
         <div className={styles.actions}>
           <Link to={`/indicators/indicator/${record.uuid}`}>View</Link>
           <Link to={`/indicators/indicator/${record.uuid}/edit`}>Edit</Link>
-          <Popconfirm
-            title='Are you sure you want to delete this indicator?'
-            onConfirm={() => handleDelete(record.uuid)}
-            okText='Yes'
-            cancelText='No'
-          >
-            <Button className={styles.delete} type='link'>
-              Delete
-            </Button>
-          </Popconfirm>
         </div>
       ),
-      width: '30%',
+      width: '150',
     },
   ];
 
