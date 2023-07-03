@@ -18,6 +18,7 @@ import {
   valueTypeOptions,
 } from '../Data/options';
 import delay from '../utils/delay';
+import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -366,6 +367,7 @@ export default function NewIndicator({ user }) {
           denominator,
         },
         orgUnit: user?.me?.organisationUnits[0]?.id,
+        uuid: uuidv4(),
       };
 
       delete payload.numerator;
@@ -377,7 +379,6 @@ export default function NewIndicator({ user }) {
     } catch (error) {
       const firstErrorField = Object.keys(error.errorFields)[0];
 
-      console.log(firstErrorField);
       const errorFieldElement =
         formRef?.current.getFieldInstance(firstErrorField);
 
