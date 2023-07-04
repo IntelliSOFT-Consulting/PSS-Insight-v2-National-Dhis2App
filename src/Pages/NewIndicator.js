@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import CardItem from '../components/Card';
 import { createUseStyles } from 'react-jss';
 import { Form, Input, Select, Button, Table, Card, Alert } from 'antd';
@@ -138,8 +138,6 @@ export default function NewIndicator({ user }) {
   const [indicatorName, setIndicatorName] = useState('');
   const [validations, setValidations] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const formRef = useRef();
 
   const {
     loading: indicatorTypeLoading,
@@ -321,7 +319,7 @@ export default function NewIndicator({ user }) {
 
   const handleSubmit = async values => {
     try {
-      await form.validateFields();
+  
       setLoading(true);
 
       const { numerator = '', denominator = '' } = values;
@@ -377,17 +375,7 @@ export default function NewIndicator({ user }) {
       await createDataElements(payload);
       setLoading(false);
     } catch (error) {
-      const firstErrorField = Object.keys(error.errorFields)[0];
-
-      const errorFieldElement =
-        formRef?.current.getFieldInstance(firstErrorField);
-
-      if (errorFieldElement) {
-        errorFieldElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      }
+      console.log(error);
       setError('Something went wrong!');
     }
   };
@@ -454,7 +442,12 @@ export default function NewIndicator({ user }) {
           onClose={() => setError(false)}
         />
       )}
-      <Form ref={formRef} layout='vertical' form={form} onFinish={handleSubmit}>
+      <Form layout='vertical' form={form} onFinish={handleSubmit}
+      onError={e => {
+        console.log(e);
+
+      }}
+      >
         <div className={classes.basicDetails}>
           <Form.Item
             label='Indicator Name'
@@ -651,6 +644,20 @@ export default function NewIndicator({ user }) {
             name='benchmark'
             label='National Target'
             className={classes.definition}
+            rules={[
+              {
+                validator: (_, value) => {
+                  if (form.getFieldValue('dataType') === 'NUMBER' && value) {
+                    if (isNaN(value)) {
+                      return Promise.reject(
+                        'Please input a valid number for the national target'
+                      );
+                    }
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
             <Input.TextArea
               placeholder='National Target'

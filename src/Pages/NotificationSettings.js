@@ -308,7 +308,7 @@ export default function NotificationSettings({ user }) {
 
       setTimeout(() => {
         setSuccess(null);
-      }, 3000);
+      }, 2000);
     } catch (error) {
       setError('Something went wrong');
     }
@@ -322,7 +322,7 @@ export default function NotificationSettings({ user }) {
       handleReset();
       setTimeout(() => {
         setSuccess(null);
-      }, 3000);
+      }, 2000);
     } catch (error) {
       setError('Something went wrong');
     }

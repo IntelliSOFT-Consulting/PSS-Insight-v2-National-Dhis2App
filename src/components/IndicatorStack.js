@@ -37,14 +37,12 @@ const useStyles = createUseStyles({
     width: '100%',
   },
   edit: {
-
     cursor: 'pointer',
     width: '1rem',
     height: '1rem',
     color: '#0067B9',
   },
   info: {
-
     cursor: 'pointer',
     width: '1.5rem',
     height: '1.5rem',
@@ -77,7 +75,7 @@ export default function IndicatorStack({
   const [editingKey, setEditingKey] = useState('');
 
   const editRow = record => {
-    console.log("Record: ",record)
+    console.log('Record: ', record);
     setEditingKey(record.categoryId || record.id);
     setEditedDescription(record.indicatorName || record.name);
   };
@@ -152,21 +150,21 @@ export default function IndicatorStack({
       ),
       key: 'edit',
       width: '2rem',
-      render: (row) => (
+      render: row => (
         <>
-          {(
+          {
             <PencilSquareIcon
               className={classes.edit}
               onClick={() => editRow(row)}
             />
-          )}
+          }
         </>
       ),
     },
     {
       name: (
         <div className={classes.tableFlex}>
-          <span>Benchmark</span>
+          <span>National Target</span>
           <ExclamationCircleIcon
             className={classes.info}
             onClick={() => setInfoModal(indicator)}

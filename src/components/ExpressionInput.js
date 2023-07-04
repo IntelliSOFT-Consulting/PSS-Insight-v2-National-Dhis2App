@@ -124,10 +124,6 @@ const ExpressionInput = ({
         tooltip="To add a question to your formula, just type the opening curly brace symbol '{' and choose from the options that appear. This will allow you to easily incorporate previously added questions into your formula."
         rules={[
           {
-            required,
-            message: `${label} is required.`,
-          },
-          {
             validator(_, value) {
               if (value) {
                 const allowedMatch = /^[0-9.()+*/{}-]*$/;
@@ -215,6 +211,7 @@ const ExpressionInput = ({
                 setShowDropdown(false);
                 return Promise.resolve();
               }
+              return Promise.resolve();
             },
           },
         ]}

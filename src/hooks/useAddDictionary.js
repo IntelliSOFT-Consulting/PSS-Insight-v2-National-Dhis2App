@@ -281,11 +281,6 @@ export default function useAddDictionary() {
       program: { id: stages?.programs?.[0]?.id },
       expression: 'V{event_count}',
       displayInForm: true,
-      filter: formatExpression(
-        dictionary.expression,
-        dataElements,
-        stages?.programs[0]?.programStages?.[0]?.id
-      ),
 
       analyticsType: 'EVENT',
       aggregationType: dictionary.methodOfEstimation,
@@ -302,6 +297,13 @@ export default function useAddDictionary() {
         },
       ],
     };
+    if (dictionary.expression) {
+      programIndicator.filter = formatExpression(
+        dictionary.expression,
+        dataElements,
+        stages?.programs[0]?.programStages?.[0]?.id
+      );
+    }
     const { response: programIndicatorResponse } = await engine.mutate({
       resource: 'programIndicators',
       type: 'create',
