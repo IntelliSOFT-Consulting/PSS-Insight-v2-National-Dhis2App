@@ -55,19 +55,19 @@ export default function Surveys({ user }) {
     {
       name: 'Pending',
       description:
-        'This tab displays surveys that have been sent to non-routine respondents and are still awaiting to be responded to.',
+        'This tab displays surveys that have been sent to routine respondents and are still awaiting to be responded to.',
       query: 'DRAFT',
     },
     {
       name: 'Confirmed',
       description:
-        'This tab displays the surveys that have been responded to by the non-routine respondents and have been verified/approved by the national admin.',
+        'This tab displays the surveys that have been responded to by the routine respondents and have been verified/approved by the national admin.',
       query: 'PUBLISHED',
     },
     {
       name: 'Rejected',
       description:
-        'This tab displays the surveys that have been responded to by the non-routine respondents and have not been approved by the national admin due to various reasons such as insufficient information. In this case, the national admin may resend the survey back to the non-routine respondent.',
+        'This tab displays the surveys that have been responded to by the routine respondents and have not been approved by the national admin due to various reasons such as insufficient information. In this case, the national admin may resend the survey back to the routine respondent.',
       query: 'REJECTED',
     },
   ];
