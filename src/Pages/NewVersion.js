@@ -51,7 +51,6 @@ export default function NewVersion({ user }) {
   const { id } = useParams();
 
   const isView = window.location.href.includes('view');
-
   const styles = useStyles();
   const formik = useFormik({
     initialValues: {

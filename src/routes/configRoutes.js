@@ -16,10 +16,6 @@ const routes = [
     path: '/configurations/contact',
     element: ContactConfig,
   },
-  {
-    path: '/configurations/period',
-    element: PeriodConfig,
-  },
 ];
 
 export default routes;

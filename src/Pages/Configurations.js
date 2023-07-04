@@ -27,10 +27,6 @@ const links = [
     label: createNavLink('/configurations/email', 'Email Configurations'),
     key: 'email',
   },
-  {
-    label: createNavLink('/configurations/period', 'Period Configurations'),
-    key: 'period',
-  },
 ];
 
 export default function Configurations() {

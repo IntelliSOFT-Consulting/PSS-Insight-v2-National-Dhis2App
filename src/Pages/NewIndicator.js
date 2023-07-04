@@ -679,12 +679,7 @@ export default function NewIndicator({ user }) {
           <Form.Item
             name='indicatorReference'
             label='Indicator Reference Number(s)'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the indicator reference number(s)!',
-              },
-            ]}
+            tooltip='This is the indicator number from the indicator source (If applicable)'
           >
             <Input placeholder='Indicator Reference Number(s)' size='large' />
           </Form.Item>

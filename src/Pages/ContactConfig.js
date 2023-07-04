@@ -6,6 +6,7 @@ import { createAbout, aboutUsDetails } from '../api/configurations';
 import Notification from '../components/Notification';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import useRedirect from '../hooks/redirect';
 
 const useStyles = createUseStyles({
   '@global': {
@@ -69,6 +70,8 @@ export default function ContactConfig() {
     }
   };
 
+  useRedirect('/configurations', 2000, success);
+
   useEffect(() => {
     const fetchAboutUs = async () => {
       setLoading(true);
@@ -87,8 +90,6 @@ export default function ContactConfig() {
     };
     fetchAboutUs();
   }, [success]);
-
-
 
   const footer = (
     <div className={classes.footer}>
@@ -131,7 +132,7 @@ export default function ContactConfig() {
           label='Contact Us'
           name='contactUs'
         >
-          <Input.TextArea size='large' placeholder='Contact us' rows={4}/>
+          <Input.TextArea size='large' placeholder='Contact us' rows={4} />
         </Form.Item>
         <Form.Item
           rules={[

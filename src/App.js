@@ -24,7 +24,7 @@ const query = {
   me: {
     resource: 'me',
     params: {
-      fields: 'id,displayName,organisationUnits[id,name]',
+      fields: 'id,displayName,username,organisationUnits[id,name]',
     },
   },
 };
