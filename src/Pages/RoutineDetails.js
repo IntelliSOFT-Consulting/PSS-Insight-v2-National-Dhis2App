@@ -177,6 +177,10 @@ export default function RoutineDetails() {
         small
         value='default'
         className={classes.btnPublish}
+        disabled={
+          surveySubmission?.status === 'REJECTED' ||
+          surveySubmission?.status === 'PUBLISHED'
+        }
       >
         Resend
       </Button>
@@ -186,6 +190,10 @@ export default function RoutineDetails() {
         small
         value='default'
         className={classes.btnCancel}
+        disabled={
+          surveySubmission?.status === 'REJECTED' ||
+          surveySubmission?.status === 'PUBLISHED'
+        }
       >
         Reject
       </Button>
@@ -196,6 +204,10 @@ export default function RoutineDetails() {
           small
           value='default'
           className={classes.btnSuccess}
+          disabled={
+            surveySubmission?.status === 'REJECTED' ||
+            surveySubmission?.status === 'PUBLISHED'
+          }
         >
           Confirm
         </Button>
