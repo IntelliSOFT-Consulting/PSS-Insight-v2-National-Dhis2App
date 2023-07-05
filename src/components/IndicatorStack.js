@@ -11,6 +11,7 @@ import { updateIndicator } from '../api/api';
 import { formatLatestId, checkDisable } from '../utils/helpers';
 import ModalItem from './Modal';
 import { Input } from 'antd';
+import { useDataEngine } from '@dhis2/app-runtime';
 
 const useStyles = createUseStyles({
   indicatorStack: {
@@ -66,6 +67,9 @@ export default function IndicatorStack({
   referenceSheet,
   selectedIndicators,
   setSelectedIndicators,
+  benchmarks,
+  setBenchmarks,
+  orgUnit,
 }) {
   const classes = useStyles();
   const [infoModal, setInfoModal] = useState(null);
@@ -73,9 +77,9 @@ export default function IndicatorStack({
   const [error, setError] = useState(null);
 
   const [editingKey, setEditingKey] = useState('');
+  const engine = useDataEngine();
 
   const editRow = record => {
-    console.log('Record: ', record);
     setEditingKey(record.categoryId || record.id);
     setEditedDescription(record.indicatorName || record.name);
   };
@@ -108,6 +112,37 @@ export default function IndicatorStack({
     setEditingKey('');
   };
 
+  const onEditBenchmark = e => {
+    const { name, value } = e.target;
+    setBenchmarks(prevState => {
+      const updated = prevState.map(benchmark => {
+        if (benchmark.name === name) {
+          return { ...benchmark, value };
+        }
+        return benchmark;
+      });
+      return updated;
+    });
+  };
+
+  // save benchmark value DHIS2 when blurred out
+  const onBlurBenchmark = async e => {
+    const { name, value } = e.target;
+    const benchmark = benchmarks.find(benchmark => benchmark.name === name);
+    if (benchmark) {
+      await engine.mutate({
+        resource: 'dataValues',
+        type: 'create',
+        params: {
+          ou: orgUnit,
+          de: benchmark.id,
+          pe: new Date().getFullYear() - 1,
+          value,
+        },
+      });
+    }
+  };
+
   const columns = [
     {
       name: 'Version Number',
@@ -116,7 +151,7 @@ export default function IndicatorStack({
       render: row => (
         <div className={classes.centered}>{indicator.version}</div>
       ),
-      rowSpan: indicator.indicatorDataValue.length,
+      rowSpan: indicator.indicatorDataValue.length?.toString(),
     },
     {
       name: indicator.categoryName || '',
@@ -172,12 +207,23 @@ export default function IndicatorStack({
         </div>
       ),
       width: '12rem',
-      key: 'internationalBenchmark',
+      key: 'id',
       render: row => (
-        <div className={classes.tableFlex}>
-          <Input />
+        <div className={classes.centered}>
+          <Input
+            name={indicator.categoryName}
+            value={
+              benchmarks?.find(
+                benchmark => benchmark.name === indicator.categoryName
+              )?.value || ''
+            }
+            onChange={onEditBenchmark}
+            onBlur={onBlurBenchmark}
+            placeholder='National Target'
+          />
         </div>
       ),
+      rowSpan: indicator.indicatorDataValue?.length?.toString(),
     },
   ];
 
@@ -202,11 +248,15 @@ export default function IndicatorStack({
           disabled={
             disabled || checkDisable(indicator.categoryId, selectedIndicators)
           }
-          checked={selectedIndicators?.find(
-            ({ id, isLatest }) =>
-              id === indicator.categoryId?.split('-')[0] &&
-              isLatest === indicator.categoryId?.endsWith('-latest')
-          )}
+          checked={
+            selectedIndicators?.find(
+              ({ id, isLatest }) =>
+                id === indicator.categoryId?.split('-')[0] &&
+                isLatest === indicator.categoryId?.endsWith('-latest')
+            )?.id
+              ? true
+              : false
+          }
           onChange={({ checked }) => {
             if (checked) {
               setSelectedIndicators([

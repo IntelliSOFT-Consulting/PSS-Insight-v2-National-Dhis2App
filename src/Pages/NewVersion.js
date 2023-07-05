@@ -23,6 +23,7 @@ import {
 } from '../utils/helpers';
 import Notification from '../components/Notification';
 import useRedirect from '../hooks/redirect';
+import { useDataEngine } from '@dhis2/app-runtime';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -47,8 +48,64 @@ export default function NewVersion({ user }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [selectedIndicators, setSelectedIndicators] = useState([]);
+  const [benchmarks, setBenchmarks] = useState([]);
 
   const { id } = useParams();
+  const engine = useDataEngine();
+
+  const queryBenchmarks = async () => {
+    // get dataSets
+    const { data } = await engine.query({
+      data: {
+        resource: 'dataSets',
+        params: {
+          fields: 'id,name',
+          paging: false,
+          filter: 'name:ilike:Benchmark',
+        },
+      },
+    });
+
+    const { data: dataElements } = await engine.query({
+      data: {
+        resource: 'dataElements',
+        params: {
+          fields: 'id,name,displayName',
+          paging: false,
+          filter: 'name:ilike:Benchmark',
+        },
+      },
+    });
+
+    if (data?.dataSets?.length > 0 && dataElements?.dataElements?.length > 0) {
+      const dataSetId = data?.dataSets[0]?.id;
+      const { data: dataValues } = await engine.query({
+        data: {
+          resource: 'dataValueSets',
+          params: {
+            orgUnit: user?.me?.organisationUnits[0]?.id,
+            period: new Date().getFullYear() - 1,
+            dataSet: dataSetId,
+            paging: false,
+            fields: 'dataElement,value,displayName',
+          },
+        },
+      });
+      const benchmarkData = dataElements?.dataElements?.map(element => {
+        const dataValue = dataValues?.dataValues?.find(
+          value => value.dataElement === element.id
+        );
+        return {
+          id: element.id,
+          name: element.displayName?.replace('Benchmark', '')?.replace('_', ''),
+          value: dataValue?.value || 0,
+        };
+      });
+      setBenchmarks(benchmarkData);
+      return benchmarkData;
+    }
+    return [];
+  };
 
   const isView = window.location.href.includes('view');
   const styles = useStyles();
@@ -120,12 +177,14 @@ export default function NewVersion({ user }) {
 
   const getIndicators = async () => {
     try {
+      const indicatorBenchmarks = await queryBenchmarks();
+
       const data = await getInternationalIndicators();
       const sortedIndicators = groupIndicatorsByVersion(data);
       setIndicators(sortedIndicators);
       setLoadingIndicators(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       setError('Something went wrong while fetching the indicators');
       setLoadingIndicators(false);
     }
@@ -185,7 +244,6 @@ export default function NewVersion({ user }) {
       <Button
         name='Small button'
         onClick={formik.handleReset}
-        small
         value='default'
         className={classes.btnCancel}
       >
@@ -197,7 +255,6 @@ export default function NewVersion({ user }) {
           formik.setFieldValue('isPublished', true);
           formik.handleSubmit();
         }}
-        small
         value='default'
         className={classes.btnPublish}
         loading={formik.isSubmitting && formik.values.isPublished}
@@ -207,7 +264,6 @@ export default function NewVersion({ user }) {
       <Button
         name='Small button'
         onClick={formik.handleSubmit}
-        small
         value='default'
         className={classes.btnSuccess}
         loading={formik.isSubmitting && !formik.values.isPublished}
@@ -311,6 +367,9 @@ export default function NewVersion({ user }) {
                     referenceSheet={item.referenceSheet}
                     selectedIndicators={selectedIndicators}
                     setSelectedIndicators={setSelectedIndicators}
+                    benchmarks={benchmarks}
+                    setBenchmarks={setBenchmarks}
+                    orgUnit={user?.me?.organisationUnits[0]?.id}
                   />
                 ))}
               </Accordion>
