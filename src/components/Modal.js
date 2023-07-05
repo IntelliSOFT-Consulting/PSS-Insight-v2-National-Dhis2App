@@ -13,7 +13,7 @@ const useStyles = createUseStyles({
             case 'warning':
               return '#f39c12 !important';
             case 'error':
-              return '#FD0C0B !important';
+              return '#bb0c2f !important';
             case 'success':
               return '#218838 !important';
             default:
@@ -29,7 +29,7 @@ const useStyles = createUseStyles({
             case 'warning':
               return '#f39c12 !important';
             case 'error':
-              return '#FD0C0B !important';
+              return '#bb0c2f !important';
             case 'success':
               return '#218838 !important';
             default:

@@ -123,7 +123,7 @@ export const formatVersionDetails = (versionDetails = {}) => {
     ?.map(indicator => {
       return indicator?.indicators.map(item => ({
         id: item.categoryId,
-        isLatest: item?.isLatest === undefined ? true : item?.isLatest,
+        isLatest: item?.latest === undefined ? true : item?.latest,
       }));
     })
     .flat();
