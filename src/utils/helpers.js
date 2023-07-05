@@ -229,7 +229,12 @@ export const formatExpression = (formula, dataElements, programStageId) => {
     return `#{${programStageId}}.#{${index.id.toString()}}`;
   });
 
-  return replacedFormula?.trim();
+  const replacedFormula2 = replacedFormula
+    ?.replace(/AND/g, '&&')
+    .replace(/OR/g, '||')
+    .replace(/NOTEQUAL/g, '!=')
+    ?.replace(/\s/g, '');
+  return replacedFormula2?.trim();
 };
 
 export const filterValidEmails = emails => {

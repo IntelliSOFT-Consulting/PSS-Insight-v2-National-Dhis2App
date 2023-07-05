@@ -24,6 +24,7 @@ import {
 import Notification from '../components/Notification';
 import useRedirect from '../hooks/redirect';
 import { useDataEngine } from '@dhis2/app-runtime';
+import { createLog } from '../api/logs';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -139,6 +140,12 @@ export default function NewVersion({ user }) {
           };
           response = await saveTemplate(data);
         }
+
+        await createLog({
+          country: user?.me?.organisationUnits[0]?.name,
+          changes: `Template ${id ? 'updated' : 'created'}`,
+          indicator: values.versionDescription,
+        });
 
         if (response) {
           setSuccess('Template saved successfully');

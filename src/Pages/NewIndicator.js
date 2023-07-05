@@ -319,7 +319,6 @@ export default function NewIndicator({ user }) {
 
   const handleSubmit = async values => {
     try {
-  
       setLoading(true);
 
       const { numerator = '', denominator = '' } = values;
@@ -416,14 +415,13 @@ export default function NewIndicator({ user }) {
     'isNull()',
     'isNotNull()',
     'AND',
-    'NOT',
+    'NOTEQUAL',
     'OR',
     '==',
     '<',
     '>',
     '>=',
     '<=',
-    '!=',
   ];
 
   return (
