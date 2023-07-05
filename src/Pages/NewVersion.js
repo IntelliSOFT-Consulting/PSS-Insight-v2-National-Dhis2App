@@ -177,7 +177,7 @@ export default function NewVersion({ user }) {
 
   const getIndicators = async () => {
     try {
-      const indicatorBenchmarks = await queryBenchmarks();
+      await queryBenchmarks();
 
       const data = await getInternationalIndicators();
       const sortedIndicators = groupIndicatorsByVersion(data);

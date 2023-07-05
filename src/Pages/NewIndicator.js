@@ -442,11 +442,13 @@ export default function NewIndicator({ user }) {
           onClose={() => setError(false)}
         />
       )}
-      <Form layout='vertical' form={form} onFinish={handleSubmit}
-      onError={e => {
-        console.log(e);
-
-      }}
+      <Form
+        layout='vertical'
+        form={form}
+        onFinish={handleSubmit}
+        onError={e => {
+          console.log(e);
+        }}
       >
         <div className={classes.basicDetails}>
           <Form.Item
@@ -655,8 +657,8 @@ export default function NewIndicator({ user }) {
                     }
                   }
                   return Promise.resolve();
-                }
-              }
+                },
+              },
             ]}
           >
             <Input.TextArea
@@ -741,9 +743,12 @@ export default function NewIndicator({ user }) {
             <div className={classes.expression}>
               <Alert
                 showIcon
-                message={`Allowed methods are:\n ${
-                  methods?.join(', ') || ''
-                } (case insensitive)`}
+                message={
+                  <p>
+                    The following <b>case sensitive</b> methods are allowed:
+                    <i>{`\t${methods?.join(', ') || ''}`}</i>
+                  </p>
+                }
                 type='info'
                 size='small'
                 style={{ marginBottom: '10px' }}

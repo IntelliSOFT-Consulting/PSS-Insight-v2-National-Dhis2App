@@ -125,7 +125,6 @@ export default function IndicatorStack({
     });
   };
 
-  // save benchmark value DHIS2 when blurred out
   const onBlurBenchmark = async e => {
     const { name, value } = e.target;
     const benchmark = benchmarks.find(benchmark => benchmark.name === name);
