@@ -16,7 +16,7 @@ import { useDataEngine } from '@dhis2/app-runtime';
 const useStyles = createUseStyles({
   indicatorStack: {
     display: 'grid',
-    gridTemplateColumns: '4rem auto',
+    gridTemplateColumns: '4rem auto 8rem',
     margin: '10px 0',
     border: '1px solid #e0e0e0',
   },
@@ -48,12 +48,49 @@ const useStyles = createUseStyles({
     width: '1.5rem',
     height: '1.5rem',
     color: '#0067B9',
+    position: 'absolute',
+    right: '5px',
+    top: '1rem',
   },
   centered: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     fontWeight: '500',
+  },
+  benchmark: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontWeight: '500',
+    position: 'relative',
+
+    '& div': {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontWeight: '500',
+      padding: '1rem 0',
+    },
+    '& h4': {
+      textAlign: 'center',
+      margin: '0',
+      padding: '0',
+      paddingRight: '2rem',
+    },
+    '& input': {
+      width: '100%',
+      maxWidth: '7rem',
+      textAlign: 'center',
+    },
+  },
+  latest: {
+    background: 'rgb(217, 232, 245)',
+  },
+  old: {
+    background: 'rgb(243, 245, 247)',
   },
 });
 
@@ -195,35 +232,6 @@ export default function IndicatorStack({
         </>
       ),
     },
-    {
-      name: (
-        <div className={classes.tableFlex}>
-          <span>National Target</span>
-          <ExclamationCircleIcon
-            className={classes.info}
-            onClick={() => setInfoModal(indicator)}
-          />
-        </div>
-      ),
-      width: '12rem',
-      key: 'id',
-      render: row => (
-        <div className={classes.centered}>
-          <Input
-            name={indicator.categoryName}
-            value={
-              benchmarks?.find(
-                benchmark => benchmark.name === indicator.categoryName
-              )?.value || ''
-            }
-            onChange={onEditBenchmark}
-            onBlur={onBlurBenchmark}
-            placeholder='National Target'
-          />
-        </div>
-      ),
-      rowSpan: indicator.indicatorDataValue?.length?.toString(),
-    },
   ];
 
   const handleDescriptionChange = e => {
@@ -284,6 +292,34 @@ export default function IndicatorStack({
             bordered
           />
         }
+      </div>
+      <div
+        className={`${classes.benchmark} ${
+          indicator.isLatestVersion ? classes.latest : classes.old
+        }`}
+      >
+        <div>
+          <h4>International Benchmark</h4>
+          <ExclamationCircleIcon
+            className={classes.info}
+            onClick={() => setInfoModal(indicator)}
+          />
+          <p>{0}</p>
+        </div>
+        <div>
+          <h4>National Target</h4>
+          <Input
+            name={indicator.categoryName}
+            value={
+              benchmarks?.find(
+                benchmark => benchmark.name === indicator.categoryName
+              )?.value || ''
+            }
+            onChange={onEditBenchmark}
+            onBlur={onBlurBenchmark}
+            placeholder='National Target'
+          />
+        </div>
       </div>
       <ModalItem
         title='EDIT INSTANCE'
