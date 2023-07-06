@@ -304,7 +304,7 @@ export default function IndicatorStack({
             className={classes.info}
             onClick={() => setInfoModal(indicator)}
           />
-          <p>{0}</p>
+          <p>{indicator?.internationalBenchmark || 0}</p>
         </div>
         <div>
           <h4>National Target</h4>
