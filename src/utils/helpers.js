@@ -23,6 +23,51 @@ export const sortIndicators = indicators => {
 };
 
 export const groupIndicatorsByVersion = indicators => {
+  const currentCategoryVersion = Math.max(
+    ...indicators.map(indicator => indicator.version)
+  );
+
+  const filteredIndicators = indicators.map(indicator => {
+    if (indicator.version === currentCategoryVersion) {
+      return indicator;
+    }
+    const currentntIndex = indicators.findIndex(
+      item => item.version === currentCategoryVersion
+    );
+    const currentVersionIndicators = indicators[
+      currentntIndex
+    ].indicators?.details?.map(detail => detail.categoryName);
+
+    const currentDataElements = indicators[currentntIndex].indicators?.details
+      ?.map(detail =>
+        detail.indicators?.map(indicator => indicator.categoryName)
+      )
+      ?.flat();
+
+    const categoriesFiltered = indicator.indicators.details.filter(detail =>
+      currentVersionIndicators.includes(detail.categoryName)
+    );
+
+    indicator.indicators.details = categoriesFiltered;
+
+    const dataElementsFiltered = indicator.indicators.details.map(detail => {
+      const { categoryName, indicators } = detail;
+      const filteredIndicators = indicators.filter(indicator =>
+        currentDataElements.includes(indicator.categoryName)
+      );
+      return {
+        categoryName,
+        indicators: filteredIndicators,
+      };
+    });
+
+    indicator.indicators.details = dataElementsFiltered;
+
+    return indicator;
+  });
+
+  indicators = filteredIndicators;
+
   const versionedIndicators = indicators.reduce((acc, indicator) => {
     const { version, indicators } = indicator;
     const referenceSheet = indicators?.referenceSheet;

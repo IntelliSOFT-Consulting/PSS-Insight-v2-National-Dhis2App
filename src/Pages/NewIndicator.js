@@ -269,8 +269,6 @@ export default function NewIndicator({ user }) {
 
   const handleAddQuestion = () => {
     if (currentQuestion?.name && currentQuestion?.valueType) {
-      // check if question is in data elements
-
       if (checkElementName(currentQuestion?.name)) {
         setValidations(
           'This question alredy exists in the system. Please use another question'
