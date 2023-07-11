@@ -281,7 +281,7 @@ export default function NewVersion({ user }) {
   );
 
   return (
-    <Card title='Create a Template' footer={isView ? null : footer}>
+    <Card title='Create A Version' footer={isView ? null : footer}>
       {success && (
         <Notification
           status='success'
