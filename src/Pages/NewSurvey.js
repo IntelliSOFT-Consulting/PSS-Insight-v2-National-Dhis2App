@@ -109,7 +109,7 @@ export default function NewSurvey({ user }) {
             setSending(true);
             const reponse = await addRespondents({
               surveyId: response?.id || id,
-              customAppUrl: `http://pssinternational.intellisoftkenya.com:3001/survey`,
+              customAppUrl: `${window.location.origin}/survey`,
               expiryDateTime: format(
                 new Date(values.expiryDateTime),
                 'yyyy-MM-dd HH:mm:ss'
