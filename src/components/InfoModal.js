@@ -76,7 +76,7 @@ export default function InfoModal(props) {
           </div>
         </div>
         <a
-          href={`http://172.104.91.99:7001/api/v1/national-template/view-file/${props.referenceSheet}`}
+          href={`${process.env.REACT_APP_NATIONAL_URL}/api/v1/national-template/view-file/${props.referenceSheet}`}
           className={classes.infoLink}
           target='_blank'
           rel='noreferrer'
