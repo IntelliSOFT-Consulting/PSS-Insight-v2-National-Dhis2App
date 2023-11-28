@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 import Loader from '../components/Loader';
 import Empty from '../components/Empty';
 import { sortSurveys } from '../utils/helpers';
-import data from '../Data/Routines.json';
+import data from '../data/Routines.json';
 import { listDataEntry } from '../api/dataEntry';
 
 const useStyles = createUseStyles({

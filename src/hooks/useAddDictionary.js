@@ -1,348 +1,381 @@
-import { useState, useEffect } from 'react';
-import { useDataEngine } from '@dhis2/app-runtime';
-import { formatExpression, formatFormula } from '../utils/helpers';
+import { useState } from "react";
+import { useDataEngine } from "@dhis2/app-runtime";
 
 export default function useAddDictionary() {
-  const [stages, setStages] = useState(null);
-  const [indicatorDescriptions, setIndicatorDescriptions] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [dictionary, setDictionary] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const engine = useDataEngine();
 
-  const getIndicatorDescriptions = async () => {
-    await engine.query(
-      {
-        dataStore: {
-          resource: 'dataStore/Indicator_description',
-          id: 'V1',
-        },
+  const fetchDataStore = async () => {
+    const { dataStore } = await engine.query({
+      dataStore: {
+        resource: "dataStore/Indicator_description",
+        id: "V1",
       },
-      {
-        onComplete: async response => {
-          const descriptions = response?.dataStore;
-          setIndicatorDescriptions(descriptions);
-        },
-      }
-    );
-    return indicatorDescriptions;
-  };
-
-  const getStages = async () => {
-    await engine.query(
-      {
-        programStages: {
-          resource: 'programs',
-          params: {
-            filter: `name:ne:default`,
-            fields: 'id,programStages[*]',
-          },
-        },
-      },
-      {
-        onComplete: async response => {
-          const stages = response?.programStages;
-          setStages(stages);
-        },
-      }
-    );
-
-    return stages;
-  };
-
-  useEffect(() => {
-    getStages();
-    getIndicatorDescriptions();
-  }, []);
-
-  const dataElementFormatter = (dataElement, keyword) => ({
-    name: `${dataElement.code}_${keyword}`,
-    shortName: `${dataElement.code}_${keyword}`,
-    code: `${dataElement.code}_${keyword}`,
-    valueType: 'TEXT',
-    aggregationType: 'NONE',
-    domainType: 'TRACKER',
-  });
-
-  const addDataToStore = async (dictionary, elements) => {
-    const storeData = Array.isArray(indicatorDescriptions)
-      ? indicatorDescriptions
-      : [];
-    const updatedQuestions = await dictionary.assessmentQuestions.map(
-      question => {
-        const dataElement = elements.find(
-          element => element.name === question.name
-        );
-
-        if (dataElement) {
-          question.id = dataElement.id;
-          question.code = dataElement.code;
-        }
-        return question;
-      }
-    );
-    dictionary.assessmentQuestions = updatedQuestions;
-
-    storeData.push(dictionary);
-    await engine.mutate({
-      resource: 'dataStore/Indicator_description/V1',
-      type: 'update',
-      data: storeData,
     });
+    return dataStore;
   };
 
-  // format assessment questions as data elements
-  const formatAssessmentQuestions = datas => {
-    const dataElements = [];
-    datas.assessmentQuestions.forEach((data, index) => {
-      const dataElement = {
-        name: data.name,
-        shortName: data.name,
-        code: `${datas.indicatorCode}${String.fromCharCode(97 + index)}`,
-        domainType: 'TRACKER',
-        valueType: data.valueType?.replace('CODED', 'TEXT'),
-        aggregationType: datas.methodOfEstimation,
+  const getProgram = async () => {
+    const { programs } = await engine.query({
+      programs: {
+        resource: "programs",
+        params: {
+          fields: "id,name,programStages[*]",
+          filter: `name:ilike:pss`,
+        },
+      },
+    });
+    return programs?.programs?.[0];
+  };
+
+  const createDataElements = async (dictionary) => {
+    const createDataElement = (
+      name,
+      code,
+      domainType,
+      valueType,
+      optionSet = null
+    ) => {
+      const de = {
+        name,
+        shortName: name,
+        code,
+        domainType,
+        valueType,
+        aggregationType: "NONE",
       };
-      if (data.optionSet) {
-        dataElement.optionSet = {
-          id: data.optionSet.id,
+
+      if (optionSet) {
+        de.optionSet = {
+          id: optionSet.id,
         };
       }
-      dataElements.push(dataElement);
-    });
 
-    // create one more data element for the indicator code
-    const dataElement = {
-      name: datas.indicatorName,
-      shortName: datas.indicatorName.substring(0, 50),
-      code: datas.indicatorCode,
-      domainType: 'TRACKER',
-      valueType: datas.dataType?.replace('CODED', 'TEXT'),
-      aggregationType: datas.methodOfEstimation,
+      return de;
     };
 
-    dataElements.push(dataElement);
+    const trackerDataElements = dictionary.assessmentQuestions?.map(
+      (question, index) =>
+        createDataElement(
+          question.name,
+          `${dictionary.indicatorCode}${String.fromCharCode(97 + index)}`,
+          "TRACKER",
+          question.valueType?.replace("CODED", "TEXT"),
+          question.optionSet
+        )
+    );
 
-    return dataElements;
-  };
+    const aggregateDataElement = createDataElement(
+      `${dictionary.indicatorName}_Benchmark`,
+      `${dictionary.indicatorCode}_Benchmark`,
+      "AGGREGATE",
+      "NUMBER"
+    );
 
-  // format data elements for comments and uploads
-  const formatDataElementsForCommentsAndUploads = dataElements => {
-    const dataElementsForCommentsAndUploads = [];
-    dataElements.forEach(dataElement => {
-      const commentDataElement = dataElementFormatter(dataElement, 'Comment');
-      const uploadDataElement = dataElementFormatter(dataElement, 'Upload');
+    const indicatorDataElement = createDataElement(
+      dictionary.indicatorName,
+      dictionary.indicatorCode,
+      "TRACKER",
+      dictionary.dataType?.replace("CODED", "TEXT")
+    );
 
-      dataElementsForCommentsAndUploads.push(commentDataElement);
-      dataElementsForCommentsAndUploads.push(uploadDataElement);
-    });
-    return dataElementsForCommentsAndUploads;
-  };
-
-  const formatAllDataElements = dictionary => {
-    const dataElements = formatAssessmentQuestions(dictionary);
-    const dataElementsForCommentsAndUploads =
-      formatDataElementsForCommentsAndUploads(dataElements);
-    // create a data element for the benchmark
-    const benchmarkDataElement = {
-      name: `${dictionary.indicatorCode}_Benchmark`,
-      shortName: `${dictionary.indicatorCode}_Benchmark`,
-      code: `${dictionary.indicatorCode}_Benchmark`,
-      domainType: 'AGGREGATE',
-      valueType: 'NUMBER',
-      aggregationType: 'NONE',
-    };
-    return [
-      ...dataElements,
-      ...dataElementsForCommentsAndUploads,
-      benchmarkDataElement,
+    const dataElements = [
+      indicatorDataElement,
+      ...trackerDataElements,
+      aggregateDataElement,
     ];
-  };
 
-  const createDataElements = async dictionary => {
-    try {
-      const dataElements = createDictionary(dictionary);
+    const { response } = await engine.mutate({
+      resource: "metadata",
+      type: "create",
+      data: { dataElements },
+    });
 
-      const elementNames = dataElements.map(element => element.name);
-
-      const { response: dataElementResponse } = await engine.mutate({
-        resource: 'metadata',
-        type: 'create',
-        data: { dataElements },
+    if (response) {
+      // get data element ids using a query
+      const { dataElements: createdDataElements } = await engine.query({
+        dataElements: {
+          resource: "dataElements",
+          params: {
+            fields: "id,name,code,valueType,optionSet[id,name,options[id,name]]",
+            filter: `code:in:[${dataElements
+              .map((dataElement) => dataElement.code)
+              .join(",")}]`,
+          },
+        },
       });
 
-      if (dataElementResponse) {
-        await engine.query(
-          {
-            dataElements: {
-              resource: 'dataElements',
-              params: {
-                filter: `name:in:[${elementNames.join(',')}]`,
-                fields: 'id,name,code',
-              },
+      return createdDataElements?.dataElements;
+    }
+  };
+
+  const deleteDataElements = async (dataElements) => {
+    const { response } = await engine.mutate({
+      resource: "metadata",
+      type: "delete",
+      data: {
+        dataElements: dataElements.map((dataElement) => ({
+          id: dataElement.id,
+        })),
+      },
+    });
+
+    return response?.importSummaries?.map((summary) => summary.reference);
+  };
+
+  const addDataElementsToProgram = async (dataElements, program) => {
+    try {
+      const { response } = await engine.mutate({
+        resource: "metadata",
+        // id: program.id,
+        type: "create",
+        data: {
+          programStages: [
+            {
+              ...program.programStages[0],
+              programStageDataElements: [
+                ...program.programStages[0].programStageDataElements,
+                ...dataElements?.map((dataElement) => ({
+                  dataElement: {
+                    id: dataElement.id,
+                  },
+                  compulsory: false,
+                  allowProvidedElsewhere: false,
+                  displayInReports: true,
+                })),
+              ],
             },
+          ],
+        },
+      });
+
+      return response?.importSummaries?.[0]?.reference;
+    } catch (e) {
+      // await deleteDataElements(dataElements);
+      console.log("error with adding to program: ", e);
+      throw new Error("Failed to add data elements to program");
+    }
+  };
+
+  const removeDataElementsFromProgram = async (dataElements, program) => {
+    const { response } = await engine.mutate({
+      resource: "metadata",
+      type: "post",
+      data: {
+        ...program,
+        programStages: [
+          {
+            ...program.programStages[0],
+            programStageDataElements: [
+              ...program.programStages[0].programStageDataElements.filter(
+                (programStageDataElement) =>
+                  !dataElements.find(
+                    (dataElement) =>
+                      dataElement.id === programStageDataElement.dataElement.id
+                  )
+              ),
+            ],
           },
-          {
-            onComplete: async ({ dataElements }) => {
-              const datas = dataElements?.dataElements;
+        ],
+      },
+    });
 
-              // get dataElement with Benchmark
-              const benchmarkDataElement = datas.find(
-                dataElement =>
-                  dataElement.name === `${dictionary.indicatorCode}_Benchmark`
-              );
+    return response?.importSummaries?.[0]?.reference;
+  };
 
-              // save dataValueSet for benchmark
-              await engine.mutate({
-                resource: 'dataValueSets',
-                type: 'create',
-                data: {
-                  dataValues: [
-                    {
-                      dataElement: benchmarkDataElement.id,
-                      value: dictionary.benchmark || 0,
-                      period: new Date().toISOString().split('T')[0],
-                      orgUnit: dictionary.orgUnit,
-                    },
-                  ],
-                },
-              });
-
-              await addDataToStore(dictionary, datas);
-              // add data elements to program
-
-              await addDataElementsToProgram(dictionary, datas);
-            },
-          }
+  const createProgramIndicator = async (dictionary, dataElements, program) => {
+    try {
+      let expression = dictionary.expression
+        ?.replace(/{/g, "#{")
+        ?.replace(/}/g, "}");
+      // replace data element names with their corresponding ids
+      dataElements.forEach((dataElement) => {
+        expression = expression?.replace(
+          new RegExp(dataElement.name, "g"),
+          `${program.id}.${dataElement.id}`
         );
-        return dataElementResponse;
-      }
-    } catch (error) {
-      throw new Error(error);
+      });
+
+      const { response } = await engine.mutate({
+        resource: "programIndicators",
+        type: "create",
+        data: {
+          name: dictionary.indicatorName,
+          shortName: dictionary.indicatorCode,
+          code: dictionary.indicatorCode,
+          expression,
+          analyticsType: "EVENT",
+          program: { id: program.id },
+          // filter: dictionary.filter,
+          displayDescription: dictionary.definition,
+          displayShortName: dictionary.indicatorName,
+          displayInForm: true,
+          dataElementDimensions: dataElements,
+        },
+      });
+
+      return response?.importSummaries?.[0]?.reference;
+    } catch (e) {
+      console.log("error with creating program indicator: ", e);
+      await removeDataElementsFromProgram(dataElements, program);
+      await deleteDataElements(dataElements);
+      throw new Error("Failed to remove data elements from program");
     }
   };
 
-  const createDictionary = dictionary => {
-    const dataElements = formatAllDataElements(dictionary);
-    return dataElements;
-  };
-
-  const addDataElementsToProgram = async (dictionary, dataElements) => {
-    // add data elements to program
-    const programStage = stages?.programs?.[0]?.programStages?.[0];
-
-    const currentStage = programStage?.id;
-    const stageElements = [
-      ...programStage.programStageDataElements,
-      ...dataElements.map(element => ({
-        dataElement: element,
-      })),
-    ];
-    programStage.programStageDataElements = stageElements;
-    const { response: programResponse } = await engine.mutate({
-      resource: 'metadata',
-      type: 'create',
-      data: { programStages: [programStage] },
+  const deleteProgramIndicator = async () => {
+    const { programIndicator } = await engine.query({
+      programIndicator: {
+        resource: "programIndicators",
+        params: {
+          fields: "id",
+          filter: `code:eq:${dictionary.indicatorCode}`,
+        },
+      },
     });
 
-    if (programResponse) {
-      await createDataElementGroup(dictionary, dataElements);
-      return programResponse;
-    }
-  };
+    if (!programIndicator?.[0]?.id) return;
 
-  const createDataElementGroup = async (dictionary, dataElements) => {
-    // create data element group
-
-    const dataElementGroup = {
-      name: dictionary.indicatorCode,
-      shortName: dictionary.indicatorCode,
-      code: dictionary.indicatorCode,
-      dataElements: dataElements,
-    };
-    const { response: dataElementGroupResponse } = await engine.mutate({
-      resource: 'dataElementGroups',
-      type: 'create',
-      data: dataElementGroup,
+    const { response } = await engine.mutate({
+      resource: "programIndicators",
+      type: "delete",
+      data: {
+        programIndicators: programIndicator?.[0]?.id,
+      },
     });
 
-    if (dataElementGroupResponse) {
-      await createProgramIndicator(dictionary, dataElements);
-    }
-
-    return dataElementGroupResponse;
+    return response?.importSummaries?.[0]?.reference;
   };
-  const createProgramIndicator = async (dictionary, dataElements) => {
-    // create program indicator
 
-    const programIndicator = {
-      name: dictionary.indicatorName,
-      shortName: dictionary.indicatorCode,
-      code: dictionary.indicatorCode,
-      program: { id: stages?.programs?.[0]?.id },
-      expression: 'V{event_count}',
-      displayInForm: true,
+  const createIndicator = async (dictionary, dataElements, program) => {
+    try {
+      let numerator = dictionary?.formula?.numerator
+        ?.replace(/{/g, "#{")
+        ?.replace(/}/g, "}");
 
-      analyticsType: 'EVENT',
-      aggregationType: dictionary.methodOfEstimation,
-      analyticsPeriodBoundaries: [
-        {
-          boundaryTarget: 'EVENT_DATE',
-          analyticsPeriodBoundaryType: 'AFTER_START_OF_REPORTING_PERIOD',
-          offsetPeriodType: 'Yearly',
+      let denominator = dictionary?.formula?.denominator
+        ?.replace(/{/g, "#{")
+        ?.replace(/}/g, "}");
+
+      // replace data element names with their corresponding ids
+      dataElements.forEach((dataElement) => {
+        numerator = numerator.replace(
+          new RegExp(dataElement.name, "g"),
+          `${program.id}.${dataElement.id}`
+        );
+        denominator = denominator.replace(
+          new RegExp(dataElement.name, "g"),
+          `${program.id}.${dataElement.id}`
+        );
+      });
+
+      const { response } = await engine.mutate({
+        resource: "indicators",
+        type: "create",
+        data: {
+          name: dictionary.indicatorName,
+          shortName: dictionary.indicatorName,
+          code: dictionary.indicatorCode,
+          numerator,
+          denominator,
+          annualized: true,
+          displayDescription: dictionary.definition,
+          displayShortName: dictionary.indicatorName,
+          displayInForm: true,
+          indicatorType: { id: dictionary?.formula?.format },
+          dataElementDimensions: [
+            {
+              id: `${dictionary.indicatorCode}_Benchmark`,
+              name: `${dictionary.indicatorName}_Benchmark`,
+            },
+          ],
         },
-        {
-          boundaryTarget: 'EVENT_DATE',
-          analyticsPeriodBoundaryType: 'BEFORE_END_OF_REPORTING_PERIOD',
-          offsetPeriodType: 'Yearly',
-        },
-      ],
-    };
-    if (dictionary.expression) {
-      programIndicator.filter = formatExpression(
-        dictionary.expression,
+      });
+
+      return response?.importSummaries?.[0]?.reference;
+    } catch (e) {
+      console.log("error with creating indicator: ", e);
+      await removeDataElementsFromProgram(dataElements, program);
+      await deleteDataElements(dataElements);
+      await deleteProgramIndicator();
+      throw new Error("Failed to create indicator");
+    }
+  };
+
+  const deleteIndicator = async (indicator) => {
+    const { response } = await engine.mutate({
+      resource: "indicators",
+      type: "delete",
+      data: {
+        indicators: [{ id: indicator }],
+      },
+    });
+
+    return response?.importSummaries?.[0]?.reference;
+  };
+
+  const updateDataStore = async (dataStore, dictionary, dataElements) => {
+    try {
+      dictionary.assessmentQuestions = dataElements;
+      const { response } = await engine.mutate({
+        resource: "dataStore/Indicator_description",
+        type: "update",
+        id: "V1",
+        data: [...dataStore, dictionary],
+      });
+      return response;
+    } catch (e) {
+      console.log("error with updating data store: ", e);
+      await removeDataElementsFromProgram(dataElements, program);
+      await deleteDataElements(dataElements);
+      await deleteProgramIndicator();
+      await deleteIndicator();
+      throw new Error("Failed to update data store");
+    }
+  };
+
+  const addDictionary = async (dictionary) => {
+    setLoading(true);
+    try {
+      const program = await getProgram();
+      const dataStore = await fetchDataStore();
+      const dataElements = await createDataElements(dictionary);
+
+      const programStage = await addDataElementsToProgram(
         dataElements,
-        stages?.programs[0]?.programStages?.[0]?.id
+        program
       );
-    }
-    const { response: programIndicatorResponse } = await engine.mutate({
-      resource: 'programIndicators',
-      type: 'create',
-      data: programIndicator,
-    });
+      const programIndicator = await createProgramIndicator(
+        dictionary,
+        dataElements,
+        program
+      );
+      const indicator = await createIndicator(
+        dictionary,
+        dataElements,
+        program
+      );
+      const updatedDataStore = await updateDataStore(
+        dataStore,
+        dictionary,
+        dataElements
+      );
 
-    if (programIndicatorResponse) {
-      await createIndicator(dictionary, dataElements);
+      return {
+        programStage,
+        programIndicator,
+        indicator,
+        updatedDataStore,
+      };
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
     }
-
-    return programIndicatorResponse;
   };
 
-  // create indicator
-  const createIndicator = async (dictionary, dataElements) => {
-    const indicator = {
-      name: dictionary.indicatorCode,
-      shortName: dictionary.indicatorCode,
-      code: dictionary.indicatorCode,
-      indicatorType: { id: dictionary.formula.format },
-      numerator: formatFormula(dictionary.formula.numerator, dataElements),
-      denominator: formatFormula(dictionary.formula.denominator, dataElements),
-    };
-
-    const { response: indicatorResponse } = await engine.mutate({
-      resource: 'indicators',
-      type: 'create',
-      data: indicator,
-    });
-
-    if (indicatorResponse) {
-      setSuccess(true);
-    }
-
-    return indicatorResponse;
-  };
-
-  return {
-    createDataElements,
-    success,
-  };
+  return { addDictionary, loading, error };
 }

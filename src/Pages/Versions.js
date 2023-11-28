@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Empty from '../components/Empty';
 import { Button } from '@dhis2/ui';
 import { toSentenceCase } from '../utils/helpers';
+import Notification from "../components/Notification";
 
 const useStyles = createUseStyles({
   actions: {
@@ -56,7 +57,9 @@ export default function Versions({ user }) {
       setVersions(data?.details);
       setLoading(false);
     } catch (error) {
-      setError(error?.response?.data);
+      setError('Error getting indicator versions');
+      const timeout = setTimeout(() => setError(null), 3000);
+      return () => clearTimeout(timeout);
     }
   };
 
@@ -65,7 +68,9 @@ export default function Versions({ user }) {
       await deleteVersion(id);
       setDeleted(true);
     } catch (error) {
-      setError(error?.response?.data);
+      setError('Error deleting indicator version');
+      const timeout = setTimeout(() => setError(null), 3000);
+      return () => clearTimeout(timeout);
     }
   };
 
@@ -174,6 +179,7 @@ export default function Versions({ user }) {
           locale={{ emptyText: <Empty /> }}
         />
       )}
+      {error && <Notification status="error" message={error} onClose={() => setError(false)} />}
     </Card>
   );
 }
