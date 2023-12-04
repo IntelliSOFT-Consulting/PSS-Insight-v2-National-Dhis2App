@@ -26,7 +26,7 @@ export const getSubscrpitionDetails = async userId => {
 
 export const updateSubscriptionDetails = async payload => {
   const { data } = await api.put(
-    `/api/v1/notification/update-subscription`,
+    `/notification/update-subscription`,
     payload
   );
   return data;
