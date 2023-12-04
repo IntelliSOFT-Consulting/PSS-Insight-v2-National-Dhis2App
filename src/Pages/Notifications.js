@@ -7,6 +7,7 @@ import Loader from '../components/Loader';
 import Notification from '../components/Notification';
 import { sortByDate } from '../utils/helpers';
 import { Pagination } from 'antd';
+import Empty from '../components/Empty';
 
 const useStyles = createUseStyles({
   notification: {
@@ -76,6 +77,9 @@ export default function Notifications({ user }) {
           {currentNotifications?.map((notification, index) => (
             <NotificationItem key={index} notification={notification} />
           ))}
+          {currentNotifications?.length === 0 && (
+            <Empty message='No notifications available' />
+          )}
         </div>
       )}
       <div className={classes.Pagination}>
