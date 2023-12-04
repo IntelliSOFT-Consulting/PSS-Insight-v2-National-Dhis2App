@@ -77,7 +77,7 @@ export default function Surveys({ user }) {
   const fetchSurveys = async () => {
     try {
       setLoading(true);
-      const data = await listDataEntry({ limit });
+      const data = await listDataEntry({ count: limit });
       setSurveys(data?.details);
       setLoading(false);
     } catch (error) {
@@ -93,7 +93,7 @@ export default function Surveys({ user }) {
   const handleChanged = async selected => {
     setLoading(true);
     setSelected(selected.name);
-    const data = await listDataEntry({ status: selected?.query || '', limit });
+    const data = await listDataEntry({ status: selected?.query || '', count: limit });
     setSurveys(data?.details);
     setLoading(false);
   };
