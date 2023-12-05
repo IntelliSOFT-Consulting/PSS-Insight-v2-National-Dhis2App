@@ -1,69 +1,63 @@
-import React, { useEffect, useState } from 'react';
-import Card from '../components/Card';
-import {
-  confirmEntry,
-  getdataEntryDetails,
-  rejectEntry,
-  resendDataEntry,
-} from '../api/dataEntry';
-import HorizontalTable from '../components/HorizontalTable';
-import { createUseStyles } from 'react-jss';
-import { useParams } from 'react-router-dom';
-import { displayDetails } from '../utils/helpers';
-import ResponseGrid from '../components/ResponsesGrid';
-import Loader from '../components/Loader';
-import Notification from '../components/Notification';
-import { Button, Form } from 'antd';
-import Resend from '../components/Resend';
-import useRedirect from '../hooks/redirect';
-import { format } from 'date-fns';
-import Title from '../components/Title';
+import React, { useEffect, useState } from "react";
+import Card from "../components/Card";
+import { getdataEntryDetails, resendDataEntry } from "../api/dataEntry";
+import HorizontalTable from "../components/HorizontalTable";
+import { createUseStyles } from "react-jss";
+import { useParams, useNavigate } from "react-router-dom";
+import { displayDetails } from "../utils/helpers";
+import ResponseGrid from "../components/ResponsesGrid";
+import Loader from "../components/Loader";
+import Notification from "../components/Notification";
+import { Button, Form } from "antd";
+import Resend from "../components/Resend";
+import useRedirect from "../hooks/redirect";
+import { format } from "date-fns";
+import Title from "../components/Title";
 
 const useStyles = createUseStyles({
   header: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '2rem',
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "2rem",
   },
   btnSuccess: {
-    backgroundColor: '#218838 !important',
-    color: 'white !important',
-    borderColor: '#218838 !important',
+    backgroundColor: "#218838 !important",
+    color: "white !important",
+    borderColor: "#218838 !important",
   },
   btnPublish: {
-    backgroundColor: '#0067b9 !important',
-    color: 'white !important',
-    borderColor: '#0067b9 !important',
+    backgroundColor: "#0067b9 !important",
+    color: "white !important",
+    borderColor: "#0067b9 !important",
   },
   btnCancel: {
-    backgroundColor: '#aaaaaa !important',
-    color: 'white !important',
-    borderColor: '#aaaaaa !important',
+    backgroundColor: "#aaaaaa !important",
+    color: "white !important",
+    borderColor: "#aaaaaa !important",
   },
   cardFooter: {
     margin: 0,
-    fontSize: '14px',
-    display: 'flex',
-    justifyContent: ({ isExpired }) => (isExpired ? 'flex-start' : 'flex-end'),
-    width: '100%',
-    flexDirection: ({ isExpired }) => (isExpired ? 'row-reverse' : 'row'),
+    fontSize: "14px",
+    display: "flex",
+    justifyContent: ({ isExpired }) => (isExpired ? "flex-start" : "flex-end"),
+    width: "100%",
+    flexDirection: ({ isExpired }) => (isExpired ? "row-reverse" : "row"),
 
-    '& > button': {
-      marginLeft: '10px',
+    "& > button": {
+      marginLeft: "10px",
     },
   },
   modalFooter: {
-    display: 'flex',
-    justifyContent: 'flex-end',
+    display: "flex",
+    justifyContent: "flex-end",
   },
   expired: {
-    margin: '1.5rem 0',
+    margin: "1.5rem 0",
   },
 });
 
 export default function RoutineDetails() {
   const [surveySubmission, setSurveySubmission] = useState(null);
-  const [newExpiry, setNewExpiry] = useState(null);
   const [selectedIndicators, setSelectedIndicators] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -75,21 +69,20 @@ export default function RoutineDetails() {
   const [showResend, setShowResend] = useState(false);
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSurveySubmission = async () => {
       setLoading(true);
       try {
         const data = await getdataEntryDetails(id);
-        if (data.status === 'DRAFT') data.responses = [];
+        if (data.status === "DRAFT") data.responses = [];
         const populateAnswers = displayDetails(data);
         data.questions = populateAnswers;
         setSurveySubmission(data);
       } catch (error) {
         console.log(error);
-        setError(
-          'Something went wrong. Please refresh the page and try again.'
-        );
+        setError("Something went wrong. Please refresh the page and try again.");
       }
       setLoading(false);
     };
@@ -97,10 +90,10 @@ export default function RoutineDetails() {
   }, [id]);
 
   const col1 = [
-    { title: 'Period', index: 'selectedPeriod' },
+    { title: "Period", index: "selectedPeriod" },
     {
-      title: 'Date Filled',
-      index: 'dataEntryDate',
+      title: "Date Filled",
+      index: "dataEntryDate",
     },
   ];
 
@@ -109,17 +102,11 @@ export default function RoutineDetails() {
       const date = surveySubmission?.respondentDetails?.expiresAt;
       const now = new Date();
       const expiry = new Date(date);
-      const hasResponded =
-        surveySubmission?.responses?.filter(item => item.response).length > 0;
+      const hasResponded = surveySubmission?.responses?.filter((item) => item.response).length > 0;
       return now > expiry && !hasResponded;
     }
     return false;
   };
-
-  const hideFooter =
-    surveySubmission?.status === 'DRAFT' ||
-    surveySubmission?.status === 'VERIFIED' ||
-    surveySubmission?.status === 'REJECTED';
 
   const resendSurvey = async (values = {}) => {
     try {
@@ -131,87 +118,32 @@ export default function RoutineDetails() {
       const data = await resendDataEntry(payload, surveySubmission.id);
 
       setShowResend(false);
-      setSuccess('Survey resent successfully!');
+      setSuccess("Survey resent successfully!");
       form.resetFields();
     } catch (error) {
       console.log(error);
-      setError('Something went wrong. Please refresh the page and try again.');
+      setError("Something went wrong. Please refresh the page and try again.");
     }
   };
   const classes = useStyles({
     isExpired: isExpired(),
   });
 
-  const handleConfirm = async () => {
-    try {
-      const verify = await confirmEntry(id);
-      if (verify) {
-        setSuccess('Survey confirmed successfully!');
-      }
-    } catch (error) {
-      console.log(error);
-      setError('Something went wrong. Please refresh the page and try again.');
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      const reject = await rejectEntry(id);
-      if (reject) {
-        setSuccess('Survey rejected successfully!');
-      }
-    } catch (error) {
-      setError('Something went wrong. Please refresh the page and try again.');
-    }
-  };
-
-  useRedirect('/routine', 1000, success);
+  useRedirect("/routine", 1000, success);
 
   const footer = (
     <div className={classes.cardFooter}>
       <Button
-        name='Small Primary button'
+        name="Small Primary button"
         onClick={() => {
-          isExpired() ? resendSurvey() : setShowResend(true);
+          navigate(-1);
         }}
         small
-        value='default'
+        value="default"
         className={classes.btnPublish}
-        disabled={
-          surveySubmission?.status === 'REJECTED' ||
-          surveySubmission?.status === 'PUBLISHED'
-        }
       >
-        Resend
+        Back
       </Button>
-      <Button
-        name='Small button'
-        onClick={handleReject}
-        small
-        value='default'
-        className={classes.btnCancel}
-        disabled={
-          surveySubmission?.status === 'REJECTED' ||
-          surveySubmission?.status === 'PUBLISHED'
-        }
-      >
-        Reject
-      </Button>
-      {!isExpired() && (
-        <Button
-          name='Small button'
-          onClick={handleConfirm}
-          small
-          value='default'
-          className={classes.btnSuccess}
-          disabled={
-            surveySubmission?.status === 'REJECTED' ||
-            surveySubmission?.status === 'PUBLISHED'
-          }
-        >
-          Confirm
-        </Button>
-      )}
     </div>
   );
 
@@ -224,10 +156,7 @@ export default function RoutineDetails() {
   );
 
   return (
-    <Card
-      title='RESPONSE'
-      footer={surveySubmission || isExpired() ? footer : null}
-    >
+    <Card title="RESPONSE" footer={surveySubmission || isExpired() ? footer : null}>
       <Resend
         open={showResend}
         onCancel={() => {
@@ -240,22 +169,8 @@ export default function RoutineDetails() {
         id={surveySubmission?.respondentDetails?.id}
         noExpiry={true}
       />
-      {error && (
-        <Notification
-          message={error}
-          status='error'
-          onClose={() => setError(null)}
-          id='error'
-        />
-      )}
-      {success && (
-        <Notification
-          message={success}
-          status='success'
-          onClose={() => setSuccess(null)}
-          key='success'
-        />
-      )}
+      {error && <Notification message={error} status="error" onClose={() => setError(null)} id="error" />}
+      {success && <Notification message={success} status="success" onClose={() => setSuccess(null)} key="success" />}
       {loading ? (
         <Loader />
       ) : (
@@ -266,20 +181,15 @@ export default function RoutineDetails() {
               data={{
                 selectedPeriod: surveySubmission?.selectedPeriod,
                 dataEntryDate: surveySubmission?.dataEntryDate
-                  ? format(
-                      new Date(surveySubmission?.dataEntryDate),
-                      'dd/MM/yyyy'
-                    )
-                  : '-',
+                  ? format(new Date(surveySubmission?.dataEntryDate), "dd/MM/yyyy")
+                  : "-",
               }}
             />
           </div>
           <div>
             {surveySubmission?.questions?.map((question, index) => (
-              <div key={index}>
-                {question.indicators?.length > 0 && (
-                  <Title text={question.categoryName} />
-                )}
+              <div key={`key_${index}`}>
+                {question.indicators?.length > 0 && <Title text={question.categoryName} />}
                 <div>
                   {question.indicators.map((indicator, index) => (
                     <ResponseGrid
@@ -287,9 +197,7 @@ export default function RoutineDetails() {
                       setSelectedIndicators={setSelectedIndicators}
                       key={index}
                       indicator={indicator}
-                      referenceSheet={
-                        surveySubmission?.respondentDetails?.referenceSheet
-                      }
+                      referenceSheet={surveySubmission?.respondentDetails?.referenceSheet}
                     />
                   ))}
                 </div>
