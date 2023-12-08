@@ -136,6 +136,7 @@ export default function NewIndicator({ user }) {
           setTopics(data.systemComponent);
         }
         setQuestions(data.assessmentQuestions);
+        setIndicatorName(data.indicatorName);
       }
     } catch (error) {
       setError("Something went wrong!");
