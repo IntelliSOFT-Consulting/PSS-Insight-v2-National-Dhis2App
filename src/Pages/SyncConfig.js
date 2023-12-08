@@ -11,7 +11,7 @@ export default function SyncConfig() {
 
   const getSyncConfig = async () => {
     try {
-      const syncConfig = await getValues("configurations", "configs");
+      const syncConfig = await getValues("configurations", "sync_configs");
       form.setFieldValue(
         "sync_to_international",
         syncConfig.sync_to_international
@@ -31,9 +31,9 @@ export default function SyncConfig() {
     console.log(values);
     try {
       setLoading(true);
-      await updateNamespace("configurations", "configs", values);
+      await updateNamespace("configurations", "sync_configs", values);
     } catch (e) {
-      await createNamespace("configurations", "configs", values);
+      await createNamespace("configurations", "sync_configs", values);
     } finally {
       await getSyncConfig();
     }
