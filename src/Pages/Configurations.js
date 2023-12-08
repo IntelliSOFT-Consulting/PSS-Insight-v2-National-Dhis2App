@@ -27,6 +27,10 @@ const links = [
     label: createNavLink('/configurations/email', 'Email Configurations'),
     key: 'email',
   },
+  {
+    label: createNavLink('/configurations/sync', 'Sync Configurations'),
+    key: 'sync',
+  }
 ];
 
 export default function Configurations() {
