@@ -168,6 +168,7 @@ export const formatVersionDetails = (versionDetails = {}) => {
     ?.map(indicator => {
       return indicator?.indicators.map(item => ({
         id: item.categoryId,
+        indicatorName: item?.indicatorName,
         isLatest: item?.latest === undefined ? true : item?.latest,
       }));
     })

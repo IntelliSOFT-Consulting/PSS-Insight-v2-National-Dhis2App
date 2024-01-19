@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { Checkbox } from '@dhis2/ui';
 import Table from './Table';
@@ -28,7 +28,12 @@ const useStyles = createUseStyles({
   indicatorTable: {
     width: '100%',
   },
-
+  table: {
+    height: '100%',
+    '& .table': {
+      height: '100%',
+    },
+  },
   tableFlex: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -97,8 +102,6 @@ const useStyles = createUseStyles({
 export default function IndicatorStack({
   indicator,
   disabled,
-  formik,
-  isView,
   userId,
   updateIndicators,
   referenceSheet,
@@ -106,7 +109,7 @@ export default function IndicatorStack({
   setSelectedIndicators,
   benchmarks,
   setBenchmarks,
-  orgUnit,
+  orgUnit
 }) {
   const classes = useStyles();
   const [infoModal, setInfoModal] = useState(null);
@@ -135,12 +138,25 @@ export default function IndicatorStack({
         payload.indicatorId = formatLatestId(key)?.id;
         payload.categoryId = formatLatestId(indicator.categoryId)?.id;
       }
+
+      setSelectedIndicators(prevState => {
+        const updated = prevState.map(indicator => {
+          if (indicator.id === payload.categoryId) {
+            return { ...indicator, indicatorName: payload.editValue };
+          }
+          return indicator;
+        }
+        );
+        return updated;
+      });
+
       const data = await updateIndicator(payload);
       if (data) {
         await updateIndicators(key, editedDescription);
         setEditingKey('');
       }
     } catch (e) {
+      console.log(e)
       setError('Error updating indicator');
     }
   };
@@ -271,6 +287,7 @@ export default function IndicatorStack({
                 {
                   id: indicator.categoryId?.split('-')[0],
                   isLatest: indicator.categoryId?.endsWith('-latest'),
+                  indicatorName: indicator.indicatorName,
                 },
               ]);
             } else {
@@ -290,6 +307,7 @@ export default function IndicatorStack({
             tableData={indicator.indicatorDataValue}
             activeIndicator={indicator.isLatestVersion}
             bordered
+            className={classes.table}
           />
         }
       </div>

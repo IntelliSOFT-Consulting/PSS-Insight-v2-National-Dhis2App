@@ -56,9 +56,15 @@ export default function Surveys({ user }) {
       query: 'DRAFT',
     },
     {
-      name: 'Pending',
+      name: 'Pending Response',
       description:
         'This tab displays surveys that have been sent to non-routine respondents and are still awaiting to be responded to.',
+      query: 'PENDING_RESPONSE',
+    },
+    {
+      name: 'Pending Confirmation',
+      description:
+        'This tab displays the surveys that have been responded to by the non-routine respondents and are awaiting verification/approval by the national admin.',
       query: 'PENDING',
     },
     {

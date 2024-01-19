@@ -10,7 +10,7 @@ import FormulaInput from "../components/FormulaInput";
 import OptionsForm from "../components/optionsForm";
 import { useDataMutation, useDataQuery, useDataEngine } from "@dhis2/app-runtime";
 import delay from "../utils/delay";
-import { aggregationTypes, components, dataTypeOptions, valueTypeOptions } from "../data/options";
+import { aggregationTypes, components, dataTypeOptions, valueTypeOptions } from "../Data/options";
 import useStyles from "./styles/newIndicator";
 import useAddDictionary from "../hooks/useAddDictionary";
 import useUpdateDictionary from "../hooks/useUpdateDictionary";
