@@ -69,7 +69,7 @@ export default function EmailConfig() {
   );
 
   return (
-    <Card title='EMAIL CONFIGURATION' footer={footer}>
+    <Card title='MAIL SERVER CONFIGURATIONS' footer={footer}>
       <Form
         layout='vertical'
         form={form}

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0");
 .ant-modal-content {
   border-radius: 0px !important;
   padding: 0px !important;
@@ -24,7 +25,7 @@
 }
 
 .icon-danger {
-  color: #FD0C0B !important;
+  color: #fd0c0b !important;
 }
 
 .ant-modal-header {
@@ -45,7 +46,7 @@
 }
 
 .modal-danger {
-  background-color: #FD0C0B !important;
+  background-color: #fd0c0b !important;
 }
 
 .ant-modal-title {
