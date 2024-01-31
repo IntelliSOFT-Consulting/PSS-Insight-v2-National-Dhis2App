@@ -197,7 +197,7 @@ export default function RoutineDetails() {
                       setSelectedIndicators={setSelectedIndicators}
                       key={index}
                       indicator={indicator}
-                      referenceSheet={surveySubmission?.respondentDetails?.referenceSheet}
+                      referenceSheet={surveySubmission?.referenceSheet}
                     />
                   ))}
                 </div>
