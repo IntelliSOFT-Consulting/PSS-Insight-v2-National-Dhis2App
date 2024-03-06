@@ -162,15 +162,20 @@ export const formatLatestId = (id = '') => {
   return { id: id.split('-')[0], isLatest: false };
 };
 
-export const formatVersionDetails = (versionDetails = {}) => {
+export const formatVersionDetails = (versionDetails = {}, allIndicators) => {
   const { indicators } = versionDetails;
   const indicatorIds = indicators.details
     ?.map(indicator => {
-      return indicator?.indicators.map(item => ({
+      return indicator?.indicators.map(item => {
+        const current = allIndicators.filter(
+          ind => ind.categoryName === item.categoryName
+        );
+        const sorted = current.sort((a, b) => b.version - a.version);
+        return ({
         id: item.categoryId,
         indicatorName: item?.indicatorName,
-        isLatest: item?.latest === undefined ? true : item?.latest,
-      }));
+        isLatest: item.version === sorted[0].version,
+      })});
     })
     .flat();
   const obj = {

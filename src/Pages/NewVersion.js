@@ -168,7 +168,7 @@ export default function NewVersion({ user }) {
       setLoadingIndicators(true);
       const data = await getVersionDetails(id);
 
-      const formattedData = formatVersionDetails(data);
+      const formattedData = formatVersionDetails(data, indicators?.flatMap(item=>item.indicators));
 
       setDetails(formattedData);
       setSelectedIndicators(formattedData.indicators);
@@ -199,11 +199,14 @@ export default function NewVersion({ user }) {
 
   useEffect(() => {
     getIndicators();
-    if (id) {
+  }, []);
+
+  useEffect(() => {
+    if (id && indicators?.length > 0) {
       getIndicatorDetails();
     }
     if (!id) formik.resetForm();
-  }, [id]);
+  }, [id, indicators]);
 
   const updateIndicators = (id, description) => {
     const updatedIndicators = indicators.map(category => {
