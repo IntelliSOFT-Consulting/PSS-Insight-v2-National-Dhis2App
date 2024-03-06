@@ -170,11 +170,12 @@ export const formatVersionDetails = (versionDetails = {}, allIndicators) => {
         const current = allIndicators.filter(
           ind => ind.categoryName === item.categoryName
         );
+
         const sorted = current.sort((a, b) => b.version - a.version);
         return ({
         id: item.categoryId,
         indicatorName: item?.indicatorName,
-        isLatest: item.version === sorted[0].version,
+        isLatest: Number(item.versionNumber) === Number(sorted[0].version),
       })});
     })
     .flat();
