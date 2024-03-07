@@ -1,5 +1,6 @@
 import Notifications from '../Pages/Notifications';
 import NotificationSettings from '../Pages/NotificationSettings';
+import Unsubscribe from '../Pages/Unsubscribe';
 
 const routes = [
   {
@@ -10,6 +11,10 @@ const routes = [
     path: '/notifications/settings',
     element: NotificationSettings,
   },
+  {
+    path: '/notifications/unsubscribe',
+    element: Unsubscribe,
+  }
 ];
 
 export default routes;
